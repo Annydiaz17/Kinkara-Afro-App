@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}{{ session.number }} · Cierre{% endblock %}
+{% block content %}
+<div class="no-print mb-4 flex flex-wrap gap-2">
+  <a href="/caja" class="btn-ghost">Volver</a>
+  <button class="btn-primary" onclick="window.print()">Imprimir hoja</button>
+  <a class="btn-ghost" href="/caja/{{ session.id }}/pdf">PDF</a>
+</div>
+<article class="sheet mx-auto max-w-xl bg-white p-6">
+  <header class="border-b border-cocoa-900 pb-3 text-center">
+    <div class="font-display text-3xl">KINKARA AFRO</div>
+    <h1 class="mt-1 text-sm font-semibold uppercase tracking-[0.25em]">Cierre de caja</h1>
+    <p class="mt-2 text-sm">{{ session.number }} · {{ (session.closed_at or session.opened_at)|dt }}</p>
+    <p class="text-sm">Abrió {{ session.opened_by.full_name }}{% if session.closed_by %} · cerró {{ session.closed_by.full_name }}{% endif %}</p>
+  </header>
+  <h2 class="mt-4 text-xs font-semibold uppercase tracking-wider">Base</h2>
+  <dl class="text-sm">
+    <div class="flex justify-between border-b border-cream-200 py-1"><dt>Base anterior</dt><dd class="num">{{ session.opening_base|money }}</dd></div>
+    <div class="flex justify-between border-b border-cream-200 py-1"><dt>Contado al abrir</dt><dd class="num">{{ session.counted_open|money }}</dd></div>
+    <div class="flex justify-between border-b border-cream-200 py-1"><dt>Diferencia de apertura</dt><dd class="num">{{ session.open_diff|money }}</dd></div>
+  </dl>
+  <h2 class="mt-4 text-xs font-semibold uppercase tracking-wider">Entradas en efectivo</h2>
+  <dl class="text-sm">
+    <div class="flex justify-between border-b border-cream-200 py-1"><dt>Ventas entregadas</dt><dd class="num">{{ flows.sales|money }}</dd></div>
+    <div class="flex justify-between border-b border-cream-200 py-1"><dt>Abonos de separados</dt><dd class="num">{{ flows.layaways|money }}</dd></div>
+    <div class="flex justify-between border-b border-cream-200 py-1"><dt>Abonos de fiados</dt><dd class="num">{{ flows.credits|money }}</dd></div>
+    <div class="flex justify-between border-b border-cream-200 py-1"><dt>Aportes y préstamos</dt><dd class="num">{{ flows.other_in|money }}</dd></div>
+  </dl>
+  <h2 class="mt-4 text-xs font-semibold uppercase tracking-wider">Salidas en efectivo</h2>
+  <dl class="text-sm">
+    <div class="flex justify-between border-b border-cream-200 py-1"><dt>Gastos</dt><dd class="num">{{ flows.expenses|money }}</dd></div>
+    <div class="flex justify-between border-b border-cream-200 py-1"><dt>Nómina</dt><dd class="num">{{ flows.payroll|money }}</dd></div>
+    <div class="flex justify-between border-b border-cream-200 py-1"><dt>Abonos a proveedores</dt><dd class="num">{{ flows.suppliers|money }}</dd></div>
+    <div class="flex justify-between border-b border-cream-200 py-1"><dt>Devoluciones</dt><dd class="num">{{ flows.refunds|money }}</dd></div>
+    <div class="flex justify-between border-b border-cream-200 py-1"><dt>Retiros y pagos de préstamo</dt><dd class="num">{{ flows.owner_out|money }}</dd></div>
+    <div class="flex justify-between border-b border-cream-200 py-1"><dt>Traslados durante el turno</dt><dd class="num">{{ flows.transfers|money }}</dd></div>
+  </dl>
+  <h2 class="mt-4 text-xs font-semibold uppercase tracking-wider">Arqueo</h2>
+  <dl class="text-sm">
+    <div class="flex justify-between border-b border-cream-200 py-1 font-semibold"><dt>Efectivo esperado</dt><dd class="num">{{ flows.expected|money }}</dd></div>
+    <div class="flex justify-between border-b border-cream-200 py-1"><dt>Efectivo contado</dt><dd class="num">{{ session.counted_close|money if session.counted_close is not none else "—" }}</dd></div>
+    <div class="flex justify-between border-b border-cream-200 py-1"><dt>Diferencia</dt><dd class="num">{{ session.close_diff|money if session.close_diff is not none else "—" }}</dd></div>
+  </dl>
+  <h2 class="mt-4 text-xs font-semibold uppercase tracking-wider">Traslado y base de mañana</h2>
+  <dl class="text-sm">
+    <div class="flex justify-between border-b border-cream-200 py-1"><dt>Traslado{% if session.transfer_account %} a {{ session.transfer_account.name }}{% endif %}</dt><dd class="num">{{ session.transfer_amount|money }}</dd></div>
+    <div class="flex justify-between border-b border-cocoa-900 py-1 font-semibold"><dt>Base del día siguiente</dt><dd class="num">{{ session.closing_base|money if session.closing_base is not none else "—" }}</dd></div>
+  </dl>
+  <h2 class="mt-5 text-xs font-semibold uppercase tracking-wider">No confundir con ganancia</h2>
+  <dl class="text-sm">
+    <div class="flex justify-between py-1"><dt>Ventas entregadas, todos los medios</dt><dd class="num">{{ delivered|money }}</dd></div>
+    <div class="flex justify-between py-1"><dt>Abonos de separados (anticipo, no venta)</dt><dd class="num">{{ layaway_all|money }}</dd></div>
+    <div class="flex justify-between py-1"><dt>Abonos de fiados (cobro de deuda)</dt><dd class="num">{{ credit_all|money }}</dd></div>
+    <div class="flex justify-between py-1"><dt>Traslados (no cambian el dinero total)</dt><dd class="num">{{ session.transfer_amount|money }}</dd></div>
+  </dl>
+  {% if profit %}
+  <h2 class="mt-5 text-xs font-semibold uppercase tracking-wider">Utilidad estimada del día</h2>
+  <dl class="text-sm">
+    <div class="flex justify-between py-1"><dt>Ventas netas entregadas</dt><dd class="num">{{ profit.net_sales|money }}</dd></div>
+    <div class="flex justify-between py-1"><dt>Costo</dt><dd class="num">{{ profit.cogs|money }}</dd></div>
+    <div class="flex justify-between py-1"><dt>Gastos y nómina</dt><dd class="num">{{ (profit.expenses + profit.payroll)|money }}</dd></div>
+    <div class="flex justify-between py-1 font-semibold"><dt>Ganancia estimada</dt><dd class="num">{{ profit.net|money }}</dd></div>
+  </dl>
+  <p class="mt-2 text-xs text-cocoa-700">Los abonos de separados del periodo ({{ profit.layaway_advances_excluded|money }}) no están en esta utilidad.</p>
+  {% endif %}
+  {% if session.open_note or session.close_note %}<p class="mt-4 text-xs">{{ session.open_note }} {{ session.close_note }}</p>{% endif %}
+  {% if session.corrected %}<p class="mt-2 text-xs font-semibold">Cierre corregido. {{ session.correction_note }}</p>{% endif %}
+</article>
+{% if user.is_admin and session.status == 'cerrada' and can_correct %}
+<form method="post" action="/caja/{{ session.id }}/corregir" class="no-print mx-auto mt-6 max-w-xl space-y-3 card p-4">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <h2 class="font-display text-2xl">Corregir este cierre</h2>
+  <p class="text-sm text-cocoa-700">Solo el último cierre, y solo antes de abrir la caja otra vez.</p>
+  <input class="input" name="counted" value="{{ session.counted_close }}" required>
+  <select class="input" name="transfer_account_id">{% for account in accounts if account.code != 'caja' %}<option value="{{ account.id }}" {% if session.transfer_account_id == account.id %}selected{% endif %}>{{ account.name }}</option>{% endfor %}</select>
+  <input class="input" name="transfer_amount" value="{{ session.transfer_amount }}">
+  <input class="input" name="note" placeholder="Qué se corrigió" required>
+  <input class="input" name="admin_password" type="password" placeholder="Clave de administración" required>
+  <button class="btn-danger">Guardar corrección</button>
+</form>
+{% endif %}
+{% endblock %}

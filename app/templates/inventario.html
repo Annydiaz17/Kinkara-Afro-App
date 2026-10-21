@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Inventario{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+  <h1 class="font-display text-4xl">Inventario</h1>
+  {% if user.is_admin %}<a href="/inventario/carga" class="btn-ghost">Carga inicial</a>{% endif %}
+</div>
+<form class="mb-4 flex flex-wrap gap-2" method="get">
+  <input class="input max-w-xs" name="q" value="{{ q }}" placeholder="Producto o SKU">
+  <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="alertas" value="1" {% if alertas %}checked{% endif %}> Solo alertas</label>
+  <button class="btn-ghost">Ver</button>
+  <a href="/inventario/movimientos" class="btn-ghost">Movimientos</a>
+</form>
+<div class="overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="text-left text-cocoa-700"><tr><th class="py-2">Variante</th><th>Disponible</th><th>Reservado</th><th>No vendible</th><th></th></tr></thead>
+    <tbody>
+      {% for item in rows %}
+      {% set variant = item.variant %}
+      <tr class="border-t border-cream-200 align-top">
+        <td class="py-2"><a class="font-semibold" href="/productos/{{ variant.product_id }}">{{ variant.product.name }}</a><div class="text-xs text-cocoa-700">{{ variant.short }} · {{ variant.sku }}</div></td>
+        <td>{% if variant.unit == 'unidad' %}{{ item.state.available }} u{% else %}{{ item.state.packages }} pq · {{ item.state.grams }} g{% endif %}{% if item.state.agotado %} <span class="badge-bad">Agotado</span>{% elif item.state.bajo %} <span class="badge-warn">Bajo</span>{% endif %}</td>
+        <td>{{ item.state.reserved }}</td>
+        <td>{% if variant.unit == 'unidad' %}{{ variant.unsellable_units }}{% else %}{{ variant.unsellable_packages }} pq · {{ variant.unsellable_grams }} g{% endif %}</td>
+        <td class="space-y-2 py-2">
+          {% if variant.unit == 'gramo' %}
+          <form method="post" action="/inventario/abrir-paquete"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="variant_id" value="{{ variant.id }}"><button class="text-xs font-semibold text-gold-700">Abrir paquete de {{ variant.package_weight_g }} g</button></form>
+          {% endif %}
+          <details>
+            <summary class="cursor-pointer text-xs font-semibold">Ajuste</summary>
+            <form method="post" action="/inventario/ajuste" class="mt-2 space-y-1">
+              <input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="variant_id" value="{{ variant.id }}">
+              <select class="input !py-1" name="bucket">{% if variant.unit == 'unidad' %}<option value="unidad">Unidades</option>{% else %}<option value="paquete">Paquetes</option><option value="gramo">Gramos</option>{% endif %}</select>
+              <input class="input !py-1" name="delta" placeholder="+2 o -1">
+              <input class="input !py-1" name="reason" placeholder="Motivo" required>
+              <input class="input !py-1" name="admin_password" type="password" placeholder="Clave admin" required>
+              <button class="btn-ghost !py-1">Ajustar</button>
+            </form>
+          </details>
+          <details>
+            <summary class="cursor-pointer text-xs font-semibold">No vendible</summary>
+            <form method="post" action="/inventario/no-vendible" class="mt-2 space-y-1">
+              <input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="variant_id" value="{{ variant.id }}">
+              <select class="input !py-1" name="bucket">{% if variant.unit == 'unidad' %}<option value="unidad">Unidades</option>{% else %}<option value="paquete">Paquetes</option><option value="gramo">Gramos</option>{% endif %}</select>
+              <input class="input !py-1" name="qty" placeholder="Cantidad">
+              <input class="input !py-1" name="reason" placeholder="Por qué no se vende" required>
+              <input class="input !py-1" name="admin_password" type="password" placeholder="Clave admin" required>
+              <button class="btn-ghost !py-1">Pasar a no vendible</button>
+            </form>
+          </details>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="py-6 text-cocoa-700">No hay variantes en este filtro.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

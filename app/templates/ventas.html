@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Comprobantes{% endblock %}
+{% block content %}
+<h1 class="font-display text-4xl">Comprobantes</h1>
+<form class="mt-4 flex flex-wrap gap-2" method="get">
+  <input class="input !w-auto" type="date" name="desde" value="{{ desde }}">
+  <input class="input !w-auto" type="date" name="hasta" value="{{ hasta }}">
+  <button class="btn-ghost">Filtrar</button>
+</form>
+<div class="mt-4 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="text-left text-cocoa-700"><tr><th class="py-2">Número</th><th>Fecha</th><th>Clienta</th><th>Total</th><th>Saldo</th><th>Estado</th></tr></thead>
+    <tbody>
+      {% for sale in sales %}
+      <tr class="border-t border-cream-200">
+        <td class="py-2"><a class="font-semibold" href="/ventas/{{ sale.id }}">{{ sale.number }}</a></td>
+        <td>{{ sale.created_at|dt }}</td>
+        <td>{{ sale.customer.name if sale.customer else "Mostrador" }}</td>
+        <td class="num">{{ sale.total|money }}</td>
+        <td class="num">{{ sale.balance|money }}</td>
+        <td>{{ sale.status }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="py-6 text-cocoa-700">No hay comprobantes en estas fechas.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

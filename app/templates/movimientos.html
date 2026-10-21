@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Movimientos{% endblock %}
+{% block content %}
+<a href="/inventario" class="text-sm font-semibold text-gold-700">Inventario</a>
+<h1 class="font-display text-4xl">Movimientos</h1>
+<form class="mt-4 flex flex-wrap gap-2" method="get">
+  <select class="input !w-auto" name="variant_id"><option value="">Todas</option>{% for variant in variants %}<option value="{{ variant.id }}" {% if variant_id == variant.id %}selected{% endif %}>{{ variant.sku }}</option>{% endfor %}</select>
+  <input class="input !w-auto" type="date" name="desde" value="{{ desde }}">
+  <input class="input !w-auto" type="date" name="hasta" value="{{ hasta }}">
+  <button class="btn-ghost">Filtrar</button>
+</form>
+<div class="mt-4 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="text-left text-cocoa-700"><tr><th class="py-2">Fecha</th><th>SKU</th><th>Motivo</th><th>Cantidad</th><th>Reserva</th>{% if user.is_admin %}<th>Costo</th>{% endif %}<th>Quién</th><th>Nota</th></tr></thead>
+    <tbody>
+      {% for move in moves %}
+      <tr class="border-t border-cream-200">
+        <td class="py-2">{{ move.created_at|dt }}</td>
+        <td>{{ move.variant.sku }}</td>
+        <td>{{ move.reason }}</td>
+        <td class="num">{{ move.bucket }} {{ '%+d'|format(move.qty) }}</td>
+        <td class="num">{{ '%+d'|format(move.reserved_delta) }}</td>
+        {% if user.is_admin %}<td class="num">{{ move.unit_cost|money }}</td>{% endif %}
+        <td>{{ move.user.full_name if move.user else "" }}</td>
+        <td>{{ move.note }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" class="py-6 text-cocoa-700">No hay movimientos en este periodo.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

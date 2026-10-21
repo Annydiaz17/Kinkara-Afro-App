@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Vender · KINKARA AFRO{% endblock %}
+{% block bottom %}{% endblock %}
+{% block content %}
+<div class="mb-4 flex items-end justify-between gap-3">
+  <h1 class="font-display text-4xl">Vender</h1>
+  <a href="/ventas" class="text-sm font-semibold text-gold-700">Comprobantes</a>
+</div>
+{% if not caja %}
+<div class="mb-4 rounded-2xl bg-gold-200 px-4 py-3 text-sm">La caja está cerrada. <a class="font-semibold underline" href="/caja">Ábrela</a> para cobrar.</div>
+{% endif %}
+<div class="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
+  <section class="space-y-4">
+    <form method="post" action="/vender/agregar" class="flex gap-2">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <input class="input" name="q" placeholder="Nombre o SKU" autofocus autocomplete="off"
+        hx-get="/vender/buscar" hx-trigger="keyup changed delay:180ms" hx-target="#results">
+      <button class="btn-primary shrink-0">Agregar</button>
+    </form>
+    <div id="results"></div>
+    {% if quick %}
+    <div>
+      <div class="mb-2 text-xs font-semibold uppercase tracking-wider text-cocoa-700">Accesorios de precio fijo</div>
+      <div class="flex gap-2 overflow-x-auto pb-1">
+        {% for variant in quick %}
+        <form method="post" action="/vender/agregar">
+          <input type="hidden" name="_csrf" value="{{ csrf }}">
+          <input type="hidden" name="variant_id" value="{{ variant.id }}">
+          <input type="hidden" name="bucket" value="unidad">
+          <input type="hidden" name="qty" value="1">
+          <button class="whitespace-nowrap rounded-full border border-cream-300 bg-white px-3 py-2 text-sm font-semibold">
+            {{ variant.product.name }} · {{ variant.price|money }}
+          </button>
+        </form>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </section>
+  <aside class="card p-4 lg:sticky lg:top-20">
+    <h2 class="font-display text-2xl">Cuenta</h2>
+    {% if quote.problems %}
+    <ul class="mt-2 space-y-1 text-sm text-clay-700">{% for problem in quote.problems %}<li>{{ problem }}</li>{% endfor %}</ul>
+    {% endif %}
+    {% if quote.lines %}
+    <ul class="mt-3 divide-y divide-cream-200">
+      {% for line in quote.lines %}
+      <li class="py-3">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <div class="font-medium leading-tight">{{ line.variant.product.name }}</div>
+            <div class="text-xs text-cocoa-700">{{ line.variant.short }} · {{ line.bucket }} · {{ line.unit_price|money }}</div>
+          </div>
+          <div class="num font-semibold">{{ line.line_total|money }}</div>
+        </div>
+        <div class="mt-2 flex items-center gap-2">
+          <form method="post" action="/vender/cantidad" class="flex items-center gap-2">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <input type="hidden" name="index" value="{{ loop.index0 }}">
+            <input class="input !w-20 !py-1.5" name="qty" type="number" min="1" value="{{ line.qty }}">
+            <button class="btn-ghost !py-1.5">Ok</button>
+          </form>
+          <form method="post" action="/vender/quitar">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <input type="hidden" name="index" value="{{ loop.index0 }}">
+            <button class="text-sm text-clay-700">Quitar</button>
+          </form>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    <form method="post" action="/vender/descuento" class="mt-3 flex items-end gap-2">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <div class="flex-1">
+        <label class="label">Descuento %</label>
+        <input class="input" name="discount_pct" inputmode="numeric" value="{{ quote.discount_pct }}">
+      </div>
+      <button class="btn-ghost">Aplicar</button>
+    </form>
+    <p class="mt-1 text-xs text-cocoa-700">Caja puede dar hasta {{ max_pct }}% si la compra pasa de {{ min_total|money }}. Otro descuento pide clave de administración.</p>
+    <dl class="mt-3 space-y-1 text-sm">
+      <div class="flex justify-between"><dt>Subtotal</dt><dd class="num">{{ quote.subtotal|money }}</dd></div>
+      <div class="flex justify-between"><dt>Descuento</dt><dd class="num">{{ quote.discount|money }}</dd></div>
+      <div class="flex justify-between font-display text-2xl"><dt>Total</dt><dd class="num">{{ quote.total|money }}</dd></div>
+    </dl>
+    {% if cart.payments %}
+    <ul class="mt-3 space-y-1 text-sm">
+      {% for pay in cart.payments %}
+      <li class="flex items-center justify-between gap-2">
+        <span>{{ METHODS[pay.method] }} {% if not pay.confirmed %}· pendiente{% endif %}</span>
+        <span class="flex items-center gap-2"><span class="num">{{ pay.amount|money }}</span>
+          <form method="post" action="/vender/pago/quitar"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="index" value="{{ loop.index0 }}"><button class="text-clay-700">×</button></form>
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+    <p class="mt-1 text-sm">Falta por cubrir: <span class="num font-semibold">{{ (quote.total - quote.declared)|money }}</span></p>
+    {% endif %}
+    {% endif %}
+    <form method="post" action="/vender/pago" class="mt-3 grid grid-cols-2 gap-2">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <select class="input col-span-2" name="method">
+        {% for code, label in METHODS.items() %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+      </select>
+      <input class="input" name="amount" inputmode="numeric" placeholder="Valor">
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="confirmed" value="1" checked> Ya entró</label>
+      <button class="btn-ghost col-span-2">Sumar pago</button>
+    </form>
+    <form method="post" action="/vender/confirmar" class="mt-4 space-y-3 border-t border-cream-200 pt-4">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <input type="hidden" name="idem" value="{{ cart.idempotency_key }}">
+      <div>
+        <label class="label">Clienta</label>
+        <select class="input" name="customer_id">
+          <option value="">Mostrador, sin ficha</option>
+          {% for customer in customers %}
+          <option value="{{ customer.id }}" {% if cart.customer_id == customer.id %}selected{% endif %}>{{ customer.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <details>
+        <summary class="cursor-pointer text-sm font-semibold">Clienta nueva</summary>
+        <div class="mt-2 space-y-2">
+          <input class="input" name="new_name" placeholder="Nombre">
+          <input class="input" name="new_phone" placeholder="Teléfono">
+          <label class="flex items-start gap-2 text-sm"><input type="checkbox" name="new_consent" value="1"> Autoriza el tratamiento de sus datos (Ley 1581 de 2012).</label>
+        </div>
+      </details>
+      <div>
+        <label class="label">Si queda saldo, vence</label>
+        <input class="input" type="date" name="due_date" value="{{ due_default }}">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <input class="input" name="admin_username" placeholder="Usuario admin" autocomplete="off">
+        <input class="input" name="admin_password" type="password" placeholder="Clave admin" autocomplete="off">
+      </div>
+      <button class="btn-gold w-full py-3 text-base" {% if not caja %}disabled{% endif %}>Cobrar {{ quote.total|money }}</button>
+    </form>
+    {% if quote.lines %}
+    <form method="post" action="/vender/vaciar" class="mt-2 text-center">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <button class="text-xs text-cocoa-700">Vaciar cuenta</button>
+    </form>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

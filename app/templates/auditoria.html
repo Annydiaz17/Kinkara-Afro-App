@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Auditoría{% endblock %}
+{% block content %}
+<h1 class="font-display text-4xl">Auditoría</h1>
+<form class="mt-4 flex gap-2" method="get">
+  <input class="input !w-auto" type="date" name="desde" value="{{ desde }}">
+  <input class="input !w-auto" type="date" name="hasta" value="{{ hasta }}">
+  <button class="btn-ghost">Filtrar</button>
+</form>
+<div class="mt-4 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="text-left text-cocoa-700"><tr><th class="py-2">Fecha</th><th>Quién</th><th>Acción</th><th>Detalle</th></tr></thead>
+    <tbody>
+      {% for row in logs %}
+      <tr class="border-t border-cream-200"><td class="py-2 whitespace-nowrap">{{ row.created_at|dt }}</td><td>{{ row.user.full_name if row.user else "—" }}</td><td>{{ row.action }}</td><td>{{ row.detail }}</td></tr>
+      {% else %}<tr><td colspan="4" class="py-4 text-cocoa-700">Sin registros en este periodo.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

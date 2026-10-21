@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Ganancias{% endblock %}
+{% block content %}
+<h1 class="font-display text-4xl">Ganancias</h1>
+<p class="mt-2 max-w-2xl text-sm text-cocoa-700">En la hoja del 13 de octubre se anotó una utilidad de $192.000. Ese número era el efectivo que entró: $150.000 de separados y $42.000 de productos entregados. Aquí la ganancia solo toma lo entregado, le resta el costo y los gastos.</p>
+<form class="mt-4 flex flex-wrap gap-2" method="get">
+  <input class="input !w-auto" type="date" name="desde" value="{{ report.start }}">
+  <input class="input !w-auto" type="date" name="hasta" value="{{ report.end }}">
+  <button class="btn-ghost">Consultar</button>
+</form>
+<p class="mt-2 text-xs text-cocoa-700">Periodo {{ report.start|largo }} a {{ report.end|largo }}. Incluye {{ report.sales_count }} ventas no anuladas.</p>
+<div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+  <div class="card p-4"><div class="text-sm text-cocoa-700">Venta neta</div><div class="num font-display text-3xl">{{ report.net_sales|money }}</div></div>
+  <div class="card p-4"><div class="text-sm text-cocoa-700">Costo de lo vendido</div><div class="num font-display text-3xl">{{ report.cogs|money }}</div></div>
+  <div class="card p-4"><div class="text-sm text-cocoa-700">Ganancia bruta</div><div class="num font-display text-3xl">{{ report.gross|money }}</div></div>
+  <div class="card p-4"><div class="text-sm text-cocoa-700">Gastos y nómina</div><div class="num font-display text-3xl">{{ (report.expenses + report.payroll)|money }}</div></div>
+  <div class="card p-4"><div class="text-sm text-cocoa-700">Retenciones de separados</div><div class="num font-display text-3xl">{{ report.retentions|money }}</div><div class="text-xs">Otro ingreso, no es venta.</div></div>
+  <div class="card bg-cocoa-900 p-4 text-cream-50"><div class="text-sm text-gold-300">Ganancia neta estimada</div><div class="num font-display text-3xl">{{ report.net|money }}</div></div>
+</div>
+<div class="mt-4 grid gap-3 md:grid-cols-2">
+  <div class="card p-4"><div class="text-sm text-cocoa-700">Anticipos del periodo que no son venta</div><div class="num font-display text-2xl">{{ report.layaway_advances_excluded|money }}</div></div>
+  <div class="card p-4"><div class="text-sm text-cocoa-700">Dinero en cuentas ahora, que no es la ganancia</div><div class="num font-display text-2xl">{{ report.cash_on_hand|money }}</div></div>
+</div>
+<h2 class="mt-6 font-display text-2xl">Operaciones incluidas</h2>
+<div class="mt-2 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="text-left text-cocoa-700"><tr><th class="py-2">Fecha</th><th>Ref</th><th>Detalle</th><th>Valor</th><th>Costo</th></tr></thead>
+    <tbody>
+      {% for op in report.operations %}
+      <tr class="border-t border-cream-200"><td class="py-2">{{ op.when|dt }}</td><td>{{ op.ref }}</td><td>{{ op.detail }}</td><td class="num">{{ op.amount|money }}</td><td class="num">{{ op.cost|money }}</td></tr>
+      {% else %}<tr><td colspan="5" class="py-4 text-cocoa-700">No hay ventas ni gastos pagados en el periodo.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="mt-3 text-xs text-cocoa-700">No incluye traslados, aportes, retiros ni préstamos. Los descuentos del periodo suman {{ report.discounts|money }} y las devoluciones {{ report.returned_revenue|money }}.</p>
+{% endblock %}

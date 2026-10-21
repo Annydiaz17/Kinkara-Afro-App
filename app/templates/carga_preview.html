@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Revisar carga{% endblock %}
+{% block content %}
+<h1 class="font-display text-4xl">Revisar antes de cargar</h1>
+<p class="mt-2 text-sm">{{ rows|length }} filas. {% if errors %}Hay errores: no se puede confirmar.{% else %}Todo está listo para crear los movimientos de apertura.{% endif %}</p>
+{% if duplicate %}<p class="mt-2 rounded-xl bg-gold-200 px-3 py-2 text-sm">Esta plantilla ya se cargó. Para aplicarla otra vez escribe CARGAR DE NUEVO.</p>{% endif %}
+<div class="mt-4 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="text-left text-cocoa-700"><tr><th class="py-2">Fila</th><th>SKU</th><th>Nombre</th><th>Cantidad</th><th>Errores</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr class="border-t border-cream-200">
+        <td class="py-2">{{ row.fila }}</td>
+        <td>{{ row.data.sku }}</td>
+        <td>{{ row.data.nombre }}</td>
+        <td>{{ row.data.cantidad }}</td>
+        <td class="text-clay-700">{{ row.errors|join(' ') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<form method="post" action="/inventario/carga/confirmar" class="mt-4 space-y-2">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <input type="hidden" name="token" value="{{ token }}">
+  {% if duplicate %}<input class="input max-w-sm" name="phrase" placeholder="CARGAR DE NUEVO">{% endif %}
+  <button class="btn-primary" {% if errors %}disabled{% endif %}>Confirmar carga</button>
+</form>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Compras{% endblock %}
+{% block content %}
+<h1 class="font-display text-4xl">Compras</h1>
+<p class="mt-2 max-w-2xl text-sm text-cocoa-700">El flete se reparte entre los productos según su valor y entra al costo. Una peluca de $100.000 con $10.000 de envío queda en $110.000.</p>
+<p class="mt-2 text-sm">Por pagar: <span class="num font-semibold">{{ payable|money }}</span></p>
+<form method="post" action="/proveedores" class="card mt-4 flex flex-wrap gap-2 p-4">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <input class="input !w-auto flex-1" name="name" placeholder="Proveedor nuevo" required>
+  <input class="input !w-auto" name="phone" placeholder="Teléfono">
+  <button class="btn-ghost">Agregar</button>
+</form>
+<form method="post" action="/compras" class="card mt-4 space-y-3 p-4" x-data="{ rows: [0, 1] }">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <h2 class="font-display text-2xl">Nuevo pedido</h2>
+  <div class="grid gap-2 md:grid-cols-3">
+    <select class="input" name="supplier_id" required><option value="">Proveedor</option>{% for supplier in suppliers %}<option value="{{ supplier.id }}">{{ supplier.name }}</option>{% endfor %}</select>
+    <input class="input" type="date" name="ordered_at" value="{{ today }}" required>
+    <input class="input" type="date" name="due_date" value="{{ due_default }}">
+  </div>
+  <template x-for="row in rows" :key="row">
+    <div class="grid gap-2 md:grid-cols-4">
+      <select class="input md:col-span-2" name="variant_id"><option value="">Producto</option>{% for variant in variants %}<option value="{{ variant.id }}">{{ variant.sku }} · {{ variant.product.name }}</option>{% endfor %}</select>
+      <input class="input" name="qty" placeholder="Cantidad">
+      <input class="input" name="unit_cost" placeholder="Costo unitario">
+    </div>
+  </template>
+  <button type="button" class="text-sm font-semibold text-gold-700" @click="rows.push(rows.length)">Otra línea</button>
+  <div class="grid gap-2 md:grid-cols-3">
+    <input class="input" name="shipping" placeholder="Flete" value="0">
+    <input class="input" name="pay_amount" placeholder="Pago ahora" value="0">
+    <select class="input" name="method"><option value="">Medio del pago</option>{% for code, label in METHODS.items() %}<option value="{{ code }}">{{ label }}</option>{% endfor %}</select>
+  </div>
+  <input class="input" name="note" placeholder="Nota">
+  <label class="text-sm"><input type="checkbox" name="receive_now" value="1" checked> La mercancía ya llegó</label>
+  <button class="btn-primary">Guardar pedido</button>
+</form>
+<div class="mt-5 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="text-left text-cocoa-700"><tr><th class="py-2">Pedido</th><th>Proveedor</th><th>Total</th><th>Saldo</th><th>Estado</th><th>Vence</th></tr></thead>
+    <tbody>
+      {% for purchase in purchases %}
+      <tr class="border-t border-cream-200">
+        <td class="py-2"><a class="font-semibold" href="/compras/{{ purchase.id }}">{{ purchase.number }}</a></td>
+        <td>{{ purchase.supplier.name }}</td>
+        <td class="num">{{ purchase.total|money }}</td>
+        <td class="num">{{ purchase.balance|money }}</td>
+        <td>{{ purchase.status }}</td>
+        <td>{{ purchase.due_date|fecha if purchase.due_date else "—" }}</td>
+      </tr>
+      {% else %}<tr><td colspan="6" class="py-4 text-cocoa-700">Todavía no hay pedidos.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

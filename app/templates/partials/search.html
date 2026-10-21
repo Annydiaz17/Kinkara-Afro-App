@@ -1,0 +1,29 @@
+{% if not query %}
+{% elif not matches %}
+<p class="text-sm text-cocoa-700">Nada coincide con «{{ query }}».</p>
+{% else %}
+<ul class="divide-y divide-cream-200 overflow-hidden rounded-2xl border border-cream-200 bg-white">
+  {% for variant in matches %}
+  <li class="flex items-center justify-between gap-3 px-3 py-3">
+    <div>
+      <div class="font-medium">{{ variant.product.name }}</div>
+      <div class="text-xs text-cocoa-700">{{ variant.short }} · {{ variant.sku }} · {{ variant.price|money }}{% if variant.unit == 'gramo' %} / g · paquete {{ variant.package_price|money }}{% endif %}</div>
+      <div class="text-xs">
+        {% if variant.unit == 'unidad' %}Disponible {{ variant.stock_units - variant.reserved_units }}{% else %}Paquetes {{ variant.stock_packages - variant.reserved_packages }} · sueltos {{ variant.stock_grams }} g{% endif %}
+      </div>
+    </div>
+    <div class="flex shrink-0 flex-col gap-1">
+      {% if variant.unit == 'unidad' %}
+      <form method="post" action="/vender/agregar"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="variant_id" value="{{ variant.id }}"><input type="hidden" name="bucket" value="unidad"><input type="hidden" name="qty" value="1"><button class="btn-primary !py-1.5">Unidad</button></form>
+      {% else %}
+      <form method="post" action="/vender/agregar"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="variant_id" value="{{ variant.id }}"><input type="hidden" name="bucket" value="paquete"><input type="hidden" name="qty" value="1"><button class="btn-primary !py-1.5">Paquete</button></form>
+      <form method="post" action="/vender/agregar" class="flex gap-1"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="variant_id" value="{{ variant.id }}"><input type="hidden" name="bucket" value="gramo"><input class="input !w-16 !py-1" name="qty" value="10"><button class="btn-ghost !py-1">g</button></form>
+      {% if variant.stock_packages - variant.reserved_packages > 0 %}
+      <form method="post" action="/inventario/abrir-paquete"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="variant_id" value="{{ variant.id }}"><input type="hidden" name="volver" value="/vender"><button class="text-xs font-semibold text-gold-700">Abrir paquete</button></form>
+      {% endif %}
+      {% endif %}
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}

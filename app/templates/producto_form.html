@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Nuevo producto{% endblock %}
+{% block content %}
+<h1 class="font-display text-4xl">Nuevo producto</h1>
+<form method="post" action="/productos" class="mt-4 grid gap-3 md:grid-cols-2" x-data="{ unit: 'unidad' }">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <div><label class="label">Código</label><input class="input" name="code" required></div>
+  <div><label class="label">Nombre</label><input class="input" name="name" required></div>
+  <div><label class="label">Categoría</label><input class="input" name="category" list="cats" required></div>
+  <datalist id="cats">{% for category in categories %}<option value="{{ category.name }}">{% endfor %}</datalist>
+  <div class="md:col-span-2"><label class="label">Descripción</label><textarea class="input" name="description" rows="2"></textarea></div>
+  <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="returnable" value="1"> Admite devolución</label>
+  <div><label class="label">Retención si cancelan un separado (%)</label><input class="input" name="retention_percent" value="20"></div>
+  <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="quick_sale" value="1"> Acceso rápido en la venta</label>
+  <h2 class="md:col-span-2 mt-2 font-display text-2xl">Primera variante</h2>
+  <div><label class="label">SKU</label><input class="input" name="sku" required></div>
+  <div><label class="label">Unidad de inventario</label>
+    <select class="input" name="unit" x-model="unit"><option value="unidad">Unidad</option><option value="gramo">Gramo (con paquete)</option></select>
+  </div>
+  <div><label class="label">Largo (pulgadas)</label><input class="input" name="length_in"></div>
+  <div><label class="label">Textura</label><input class="input" name="texture" list="textures"></div>
+  <div><label class="label">Color</label><input class="input" name="color" list="colors"></div>
+  <div><label class="label">Origen</label><input class="input" name="origin"></div>
+  <div><label class="label">Tipo de cabello</label><input class="input" name="hair_type" list="types"></div>
+  <div x-show="unit === 'gramo'" x-cloak><label class="label">Peso del paquete (g)</label><input class="input" name="package_weight_g" value="100"></div>
+  <div x-show="unit === 'gramo'" x-cloak><label class="label">Precio del paquete</label><input class="input" name="package_price"></div>
+  <div><label class="label" x-text="unit === 'gramo' ? 'Precio por gramo' : 'Precio de venta'"></label><input class="input" name="price" required></div>
+  <div><label class="label" x-text="unit === 'gramo' ? 'Costo del paquete' : 'Costo'"></label><input class="input" name="cost" value="0"></div>
+  <div><label class="label" x-text="unit === 'gramo' ? 'Paquetes iniciales' : 'Cantidad inicial'"></label><input class="input" name="initial_qty" value="0"></div>
+  <div x-show="unit === 'gramo'" x-cloak><label class="label">Gramos sueltos</label><input class="input" name="initial_grams" value="0"></div>
+  <div><label class="label">Stock mínimo</label><input class="input" name="min_stock" value="0"></div>
+  <div class="md:col-span-2"><button class="btn-primary">Guardar producto</button></div>
+</form>
+<datalist id="textures"><option value="body wave"><option value="deep wave"><option value="loose wave"><option value="kinky curly"><option value="liso"><option value="afro"></datalist>
+<datalist id="colors"><option value="1B"><option value="1"><option value="2"><option value="4"><option value="27"><option value="30"><option value="99J"><option value="613"><option value="natural"></datalist>
+<datalist id="types"><option value="humano"><option value="sintético"><option value="mezcla"></datalist>
+{% endblock %}

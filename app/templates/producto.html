@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+<a href="/productos" class="text-sm font-semibold text-gold-700">Productos</a>
+<p class="text-xs text-cocoa-700">{{ product.code }} · {{ product.category.name }}</p>
+<h1 class="font-display text-4xl">{{ product.name }}</h1>
+<p class="mt-2 max-w-2xl text-sm text-cocoa-700">{{ product.description }}</p>
+<div class="mt-2 flex flex-wrap gap-2 text-xs">
+  {% if product.active %}<span class="badge-ok">Activo</span>{% else %}<span class="badge-mute">Inactivo</span>{% endif %}
+  {% if product.returnable %}<span class="badge-ok">Admite devolución</span>{% else %}<span class="badge-mute">Sin devolución</span>{% endif %}
+  <span class="badge-warn">Retención de separado {{ product.retention_percent }}%</span>
+</div>
+<div class="mt-5 space-y-3">
+  {% for variant in product.variants %}
+  <article class="card p-4">
+    <div class="flex flex-wrap items-start justify-between gap-2">
+      <div>
+        <div class="font-semibold">{{ variant.short }} <span class="text-cocoa-700">{{ variant.sku }}</span></div>
+        <div class="text-xs text-cocoa-700">{{ variant.texture }} {{ variant.color }} {{ variant.origin }} {{ variant.hair_type }}</div>
+      </div>
+      {% if not variant.active %}<span class="badge-mute">Inactiva</span>{% endif %}
+    </div>
+    <dl class="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+      <div><dt class="text-cocoa-700">Precio</dt><dd class="num font-semibold">{{ variant.price|money }}{% if variant.unit == 'gramo' %}/g{% endif %}</dd></div>
+      {% if variant.unit == 'gramo' %}<div><dt class="text-cocoa-700">Paquete</dt><dd class="num">{{ variant.package_price|money }} · {{ variant.package_weight_g }} g</dd></div>{% endif %}
+      {% if user.is_admin %}<div><dt class="text-cocoa-700">Costo prom.</dt><dd class="num">{{ variant.cost|money }}{% if variant.unit == 'gramo' %}/g{% endif %}</dd></div>{% endif %}
+      <div><dt class="text-cocoa-700">Existencia</dt><dd>{% if variant.unit == 'unidad' %}{{ variant.stock_units }} · reservadas {{ variant.reserved_units }} · no vendibles {{ variant.unsellable_units }}{% else %}{{ variant.stock_packages }} paquetes · {{ variant.stock_grams }} g · reservados {{ variant.reserved_packages }}{% endif %}</dd></div>
+    </dl>
+    {% if user.is_admin %}
+    <form method="post" action="/variantes/{{ variant.id }}/precio" class="mt-3 flex flex-wrap gap-2">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <input class="input !w-36" name="price" value="{{ variant.price }}">
+      {% if variant.unit == 'gramo' %}<input class="input !w-36" name="package_price" value="{{ variant.package_price }}">{% endif %}
+      <button class="btn-ghost">Cambiar precio</button>
+    </form>
+    {% endif %}
+  </article>
+  {% endfor %}
+</div>
+{% if user.is_admin %}
+<form method="post" action="/productos/{{ product.id }}" class="card mt-6 grid gap-3 p-4 md:grid-cols-2">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <h2 class="md:col-span-2 font-display text-2xl">Ficha</h2>
+  <input class="input" name="name" value="{{ product.name }}">
+  <input class="input" name="category" value="{{ product.category.name }}" list="cats">
+  <datalist id="cats">{% for category in categories %}<option value="{{ category.name }}">{% endfor %}</datalist>
+  <textarea class="input md:col-span-2" name="description" rows="2">{{ product.description }}</textarea>
+  <label class="text-sm"><input type="checkbox" name="returnable" value="1" {% if product.returnable %}checked{% endif %}> Admite devolución</label>
+  <input class="input" name="retention_percent" value="{{ product.retention_percent }}">
+  <label class="text-sm"><input type="checkbox" name="quick_sale" value="1" {% if product.quick_sale %}checked{% endif %}> Venta rápida</label>
+  <label class="text-sm"><input type="checkbox" name="active" value="1" {% if product.active %}checked{% endif %}> Activo</label>
+  <button class="btn-primary md:col-span-2">Guardar ficha</button>
+</form>
+<details class="card mt-4 p-4">
+  <summary class="cursor-pointer font-display text-2xl">Otra variante</summary>
+  <form method="post" action="/productos/{{ product.id }}/variantes" class="mt-3 grid gap-2 md:grid-cols-2" x-data="{ unit: '{{ product.variants[0].unit if product.variants else 'unidad' }}' }">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <input class="input" name="sku" placeholder="SKU" required>
+    <select class="input" name="unit" x-model="unit"><option value="unidad">Unidad</option><option value="gramo">Gramo</option></select>
+    <input class="input" name="length_in" placeholder="Largo">
+    <input class="input" name="texture" placeholder="Textura">
+    <input class="input" name="color" placeholder="Color">
+    <input class="input" name="origin" placeholder="Origen">
+    <input class="input" name="hair_type" placeholder="Tipo">
+    <input class="input" x-show="unit==='gramo'" name="package_weight_g" placeholder="Peso g">
+    <input class="input" x-show="unit==='gramo'" name="package_price" placeholder="Precio paquete">
+    <input class="input" name="price" placeholder="Precio" required>
+    <input class="input" name="cost" placeholder="Costo" value="0">
+    <input class="input" name="initial_qty" placeholder="Cantidad inicial" value="0">
+    <input class="input" name="min_stock" placeholder="Mínimo" value="0">
+    <button class="btn-ghost md:col-span-2">Agregar variante</button>
+  </form>
+</details>
+{% if prices or costs %}
+<section class="mt-6 grid gap-4 md:grid-cols-2">
+  <div>
+    <h2 class="font-display text-2xl">Precios</h2>
+    <ul class="mt-2 text-sm">{% for row in prices %}<li class="border-t border-cream-200 py-1">{{ row.created_at|dt }} · {{ row.price|money }} · {{ row.user.full_name if row.user else "" }}</li>{% endfor %}</ul>
+  </div>
+  <div>
+    <h2 class="font-display text-2xl">Costos</h2>
+    <ul class="mt-2 text-sm">{% for row in costs %}<li class="border-t border-cream-200 py-1">{{ row.created_at|dt }} · {{ row.cost|money }} · {{ row.reason }}</li>{% endfor %}</ul>
+  </div>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

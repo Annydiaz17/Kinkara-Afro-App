@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ account.name }}{% endblock %}
+{% block content %}
+<a href="/cuentas" class="text-sm font-semibold text-gold-700">Cuentas</a>
+<h1 class="font-display text-4xl">{{ account.name }}</h1>
+<p class="num mt-1 font-display text-3xl">{{ account.balance|money }}</p>
+{% if account.code == 'ahorro' %}
+<p class="mt-2 max-w-xl text-sm text-cocoa-700">Total en ahorro {{ account.balance|money }}. Anticipos de separados todavía no entregados, en todo el negocio: {{ committed|money }}. No es plata libre de las clientas.</p>
+{% endif %}
+{% if user.is_admin and account.kind != 'caja' %}
+<form method="post" action="/cuentas/{{ account.id }}/conciliar" class="card mt-4 grid gap-2 p-4 md:grid-cols-4">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <input class="input" name="statement_balance" placeholder="Saldo del extracto">
+  <input class="input md:col-span-2" name="reason" placeholder="Motivo si hay diferencia">
+  <input class="input" name="admin_password" type="password" placeholder="Clave admin">
+  <button class="btn-ghost md:col-span-4">Conciliar</button>
+</form>
+{% endif %}
+<div class="mt-4 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="text-left text-cocoa-700"><tr><th class="py-2">Fecha</th><th>Movimiento</th><th>Valor</th><th>Detalle</th></tr></thead>
+    <tbody>
+      {% for move in moves %}
+      <tr class="border-t border-cream-200 {% if move.voided %}text-cocoa-700/50{% endif %}">
+        <td class="py-2">{{ move.created_at|dt }}</td>
+        <td>{{ move.kind }}{% if move.voided %} · anulado{% endif %}</td>
+        <td class="num">{{ move.amount|money }}</td>
+        <td>{{ move.note }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="py-4 text-cocoa-700">Esta cuenta todavía no tiene movimientos.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

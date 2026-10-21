@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Entrar · KINKARA AFRO{% endblock %}
+{% block content %}
+<div class="mx-auto mt-8 max-w-md">
+  <div class="mb-8">
+    <div class="font-display text-5xl leading-none tracking-tight">Kinkara</div>
+    <div class="mt-2 text-xs font-semibold tracking-[0.42em] text-gold-700">AFRO</div>
+    <p class="mt-4 text-cocoa-800">Caja, inventario y separados del salón. Un solo turno, una sola caja.</p>
+  </div>
+  <form method="post" action="/login" class="card space-y-4 p-5">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <input type="hidden" name="next" value="{{ next }}">
+    <div>
+      <label class="label" for="username">Usuario</label>
+      <input class="input" id="username" name="username" autocomplete="username" required autofocus>
+    </div>
+    <div>
+      <label class="label" for="password">Contraseña</label>
+      <input class="input" id="password" name="password" type="password" autocomplete="current-password" required>
+    </div>
+    <button class="btn-primary w-full py-3">Entrar</button>
+  </form>
+  {% if demo_hint %}
+  <div class="mt-4 rounded-2xl border border-dashed border-gold-500/50 bg-white/70 p-4 text-sm">
+    <div class="font-semibold">Primer acceso</div>
+    <p class="mt-1 text-cocoa-800">Administración: <span class="num">admin</span> · <span class="num">Afro.2026</span></p>
+    <p class="text-cocoa-800">Caja: <span class="num">caja</span> · <span class="num">Caja.2026</span></p>
+    <p class="mt-2 text-xs text-cocoa-700">Cámbialas en Ajustes y oculta este recuadro cuando el salón ya las conozca.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

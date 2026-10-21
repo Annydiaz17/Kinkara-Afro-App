@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Gastos{% endblock %}
+{% block content %}
+<h1 class="font-display text-4xl">Gastos</h1>
+<p class="mt-2 max-w-2xl text-sm text-cocoa-700">La nómina por turno no se usa hoy: el salón lo atienden sus dueñas. Si más adelante hay un pago de personal, regístralo en la categoría Nómina y saldrá en el cierre.</p>
+<form class="mt-4 flex flex-wrap gap-2" method="get">
+  <input class="input !w-auto" type="date" name="desde" value="{{ desde }}">
+  <input class="input !w-auto" type="date" name="hasta" value="{{ hasta }}">
+  <select class="input !w-auto" name="categoria"><option value="">Todas</option>{% for category in categories %}<option value="{{ category.slug }}" {% if categoria == category.slug %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select>
+  <button class="btn-ghost">Filtrar</button>
+</form>
+<form method="post" action="/gastos" enctype="multipart/form-data" class="card mt-4 grid gap-2 p-4 md:grid-cols-2">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <select class="input" name="category">{% for category in categories %}<option value="{{ category.slug }}">{{ category.name }}</option>{% endfor %}</select>
+  <input class="input" name="amount" placeholder="Valor" required>
+  <input class="input" type="date" name="spent_on" value="{{ today }}" required>
+  <input class="input" name="description" placeholder="Descripción" required>
+  <label class="text-sm"><input type="checkbox" name="paid" value="1" checked> Ya está pagado</label>
+  <select class="input" name="method">{% for code, label in METHODS.items() %}<option value="{{ code }}" {% if code == 'efectivo' %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+  <input class="input md:col-span-2" type="file" name="soporte" accept="image/*,.pdf">
+  <button class="btn-primary">Registrar gasto</button>
+</form>
+<form method="post" action="/gastos/categorias" class="mt-3 flex gap-2"><input type="hidden" name="_csrf" value="{{ csrf }}"><input class="input max-w-xs" name="name" placeholder="Nueva categoría"><button class="btn-ghost">Crear</button></form>
+<div class="mt-4 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="text-left text-cocoa-700"><tr><th class="py-2">Fecha</th><th>Categoría</th><th>Detalle</th><th>Valor</th><th>Estado</th></tr></thead>
+    <tbody>
+      {% for expense in expenses %}
+      <tr class="border-t border-cream-200">
+        <td class="py-2">{{ expense.spent_on|fecha }}</td>
+        <td>{{ expense.category.name }}</td>
+        <td>{{ expense.description }}{% if expense.attachment %} · <a class="font-semibold" href="/gastos/{{ expense.id }}/soporte">soporte</a>{% endif %}</td>
+        <td class="num">{{ expense.amount|money }}</td>
+        <td>{% if expense.status == 'pagado' %}Pagado{% if expense.account %} · {{ expense.account.name }}{% endif %}{% else %}
+          <form method="post" action="/gastos/{{ expense.id }}/pagar" class="flex gap-1"><input type="hidden" name="_csrf" value="{{ csrf }}"><select class="input !w-auto !py-1" name="method">{% for code, label in METHODS.items() %}<option value="{{ code }}">{{ label }}</option>{% endfor %}</select><button class="btn-ghost !py-1">Pagar</button></form>
+        {% endif %}</td>
+      </tr>
+      {% else %}<tr><td colspan="5" class="py-4 text-cocoa-700">No hay gastos en este filtro.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

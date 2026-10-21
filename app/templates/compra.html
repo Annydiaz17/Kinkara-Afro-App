@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ purchase.number }}{% endblock %}
+{% block content %}
+<a href="/compras" class="text-sm font-semibold text-gold-700">Compras</a>
+<h1 class="font-display text-4xl">{{ purchase.number }}</h1>
+<p class="text-sm">{{ purchase.supplier.name }} · {{ purchase.ordered_at|fecha }} · {{ purchase.status }}</p>
+<dl class="mt-3 max-w-md text-sm">
+  <div class="flex justify-between"><dt>Mercancía</dt><dd class="num">{{ purchase.merchandise|money }}</dd></div>
+  <div class="flex justify-between"><dt>Flete</dt><dd class="num">{{ purchase.shipping|money }}</dd></div>
+  <div class="flex justify-between font-semibold"><dt>Total</dt><dd class="num">{{ purchase.total|money }}</dd></div>
+  <div class="flex justify-between"><dt>Abonado</dt><dd class="num">{{ purchase.paid|money }}</dd></div>
+  <div class="flex justify-between"><dt>Saldo</dt><dd class="num">{{ purchase.balance|money }}</dd></div>
+</dl>
+<table class="mt-4 w-full max-w-2xl text-sm">
+  <thead class="text-left text-cocoa-700"><tr><th>Producto</th><th>Cant.</th><th>Costo</th><th>Flete</th><th>Costo final</th></tr></thead>
+  <tbody>
+    {% for line in purchase.lines %}
+    <tr class="border-t border-cream-200"><td class="py-2">{{ line.variant.label }}</td><td>{{ line.qty }} {{ line.bucket }}</td><td class="num">{{ line.unit_cost|money }}</td><td class="num">{{ line.freight_share|money }}</td><td class="num">{{ line.final_unit_cost|money }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if purchase.status == 'pedida' %}
+<form method="post" action="/compras/{{ purchase.id }}/recibir" class="mt-4"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn-gold">Recibir mercancía</button></form>
+<form method="post" action="/compras/{{ purchase.id }}/anular" class="mt-3 flex max-w-lg gap-2"><input type="hidden" name="_csrf" value="{{ csrf }}"><input class="input" name="reason" placeholder="Motivo de anulación" required><button class="btn-danger">Anular pedido</button></form>
+{% endif %}
+{% if purchase.balance and purchase.status != 'anulada' %}
+<form method="post" action="/compras/{{ purchase.id }}/pagar" class="card mt-4 flex flex-wrap gap-2 p-4">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <input class="input !w-36" name="amount" placeholder="Abono" required>
+  <select class="input !w-auto" name="method">{% for code, label in METHODS.items() %}<option value="{{ code }}">{{ label }}</option>{% endfor %}</select>
+  <button class="btn-primary">Pagar</button>
+</form>
+{% endif %}
+<ul class="mt-4 text-sm">{% for pay in purchase.payments %}<li class="border-t border-cream-200 py-1">{{ pay.created_at|dt }} · {{ pay.account.name }} · {{ pay.amount|money }}</li>{% endfor %}</ul>
+{% endblock %}

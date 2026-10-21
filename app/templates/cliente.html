@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ customer.name }}{% endblock %}
+{% block content %}
+<a href="/clientes" class="text-sm font-semibold text-gold-700">Clientas</a>
+<h1 class="font-display text-4xl">{{ customer.name }}</h1>
+<p class="text-sm text-cocoa-700">{{ customer.phone }} {% if customer.doc_id %}· {{ customer.doc_id }}{% endif %} {% if customer.consent %}<span class="badge-ok">Autorizó sus datos {{ customer.consent_at|fecha }}</span>{% endif %}</p>
+<form method="post" action="/clientes/{{ customer.id }}" class="card mt-4 grid gap-2 p-4 md:grid-cols-2">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <input class="input" name="name" value="{{ customer.name }}">
+  <input class="input" name="phone" value="{{ customer.phone }}">
+  <input class="input" name="doc_id" value="{{ customer.doc_id }}">
+  <input class="input" name="email" value="{{ customer.email }}">
+  <textarea class="input md:col-span-2" name="notes" rows="2">{{ customer.notes }}</textarea>
+  <label class="text-sm md:col-span-2"><input type="checkbox" name="consent" value="1" {% if customer.consent %}checked{% endif %}> Autoriza el tratamiento de datos (Ley 1581 de 2012).</label>
+  <button class="btn-ghost">Guardar</button>
+</form>
+<div class="mt-6 grid gap-4 md:grid-cols-2">
+  <section>
+    <h2 class="font-display text-2xl">Compras y fiados</h2>
+    <ul class="mt-2 text-sm">{% for sale in sales %}<li class="border-t border-cream-200 py-2"><a href="/ventas/{{ sale.id }}">{{ sale.number }}</a> · {{ sale.total|money }} · saldo {{ sale.balance|money }}</li>{% else %}<li class="text-cocoa-700">Sin compras.</li>{% endfor %}</ul>
+  </section>
+  <section>
+    <h2 class="font-display text-2xl">Separados</h2>
+    <ul class="mt-2 text-sm">{% for layaway in layaways %}<li class="border-t border-cream-200 py-2"><a href="/separados/{{ layaway.id }}">{{ layaway.number }}</a> · abonado {{ layaway.paid|money }} · {{ layaway.status }}</li>{% else %}<li class="text-cocoa-700">Sin separados.</li>{% endfor %}</ul>
+  </section>
+</div>
+{% endblock %}

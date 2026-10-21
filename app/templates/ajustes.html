@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Ajustes{% endblock %}
+{% block content %}
+<h1 class="font-display text-4xl">Ajustes</h1>
+<form method="post" action="/ajustes" class="card mt-4 grid max-w-2xl gap-3 p-4">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <div><label class="label">Nombre del negocio</label><input class="input" name="business_name" value="{{ values.business_name }}"></div>
+  <div class="grid gap-2 md:grid-cols-2">
+    <input class="input" name="business_city" value="{{ values.business_city }}" placeholder="Ciudad">
+    <input class="input" name="business_phone" value="{{ values.business_phone }}" placeholder="Teléfono">
+  </div>
+  <input class="input" name="business_nit" value="{{ values.business_nit }}" placeholder="NIT, si quieren mostrarlo">
+  <div class="grid gap-2 md:grid-cols-2">
+    <div><label class="label">Descuento máximo de caja (%)</label><input class="input" name="discount_max_pct" value="{{ values.discount_max_pct }}"></div>
+    <div><label class="label">Compra mínima para ese descuento</label><input class="input" name="discount_min_total" value="{{ values.discount_min_total }}"></div>
+  </div>
+  <div class="grid gap-2 md:grid-cols-3">
+    <div><label class="label">Días del separado</label><input class="input" name="layaway_days" value="{{ values.layaway_days }}"></div>
+    <div><label class="label">Avisar días antes</label><input class="input" name="layaway_alert_days" value="{{ values.layaway_alert_days }}"></div>
+    <div><label class="label">Abono inicial mínimo (%)</label><input class="input" name="layaway_min_pct" value="{{ values.layaway_min_pct }}"></div>
+  </div>
+  <div><label class="label">Cuenta donde llega Bre-B</label>
+    <select class="input" name="breb_account">{% for account in accounts if account.kind != 'caja' %}<option value="{{ account.code }}" {% if values.breb_account == account.code %}selected{% endif %}>{{ account.name }}</option>{% endfor %}</select>
+    <p class="mt-1 text-xs text-cocoa-700">Bre-B es un medio de pago, no una cuenta. El dinero entra a la cuenta de la llave.</p>
+  </div>
+  <label class="text-sm"><input type="checkbox" name="show_demo_hint" value="1" {% if values.show_demo_hint == '1' %}checked{% endif %}> Mostrar las claves iniciales en la pantalla de entrada</label>
+  <p class="text-xs text-cocoa-700">Si el mes del separado se vence, la unidad sigue reservada y aparece como vencida. No se cancela sola. Administración puede prorrogarla o cancelarla.</p>
+  <button class="btn-primary">Guardar ajustes</button>
+</form>
+<form method="post" action="/cuenta/clave" class="card mt-4 max-w-md space-y-2 p-4">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <h2 class="font-display text-2xl">Tu contraseña</h2>
+  <input class="input" type="password" name="current" placeholder="Clave actual" required>
+  <input class="input" type="password" name="new" placeholder="Clave nueva" required>
+  <button class="btn-ghost">Cambiar</button>
+</form>
+{% endblock %}

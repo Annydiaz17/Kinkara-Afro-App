@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Clientas{% endblock %}
+{% block content %}
+<h1 class="font-display text-4xl">Clientas</h1>
+<form class="mt-4" method="get"><input class="input max-w-md" name="q" value="{{ q }}" placeholder="Nombre, teléfono o documento"></form>
+<form method="post" action="/clientes" class="card mt-4 grid gap-2 p-4 md:grid-cols-2">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <input class="input" name="name" placeholder="Nombre" required>
+  <input class="input" name="phone" placeholder="Teléfono">
+  <input class="input" name="doc_id" placeholder="Documento">
+  <input class="input" name="email" placeholder="Correo">
+  <input class="input md:col-span-2" name="notes" placeholder="Nota">
+  <label class="md:col-span-2 text-sm"><input type="checkbox" name="consent" value="1" required> Autoriza el tratamiento de sus datos personales, Ley 1581 de 2012.</label>
+  <button class="btn-primary">Registrar clienta</button>
+</form>
+<ul class="mt-4 divide-y divide-cream-200">
+  {% for customer in customers %}
+  <li class="flex items-center justify-between py-3">
+    <a href="/clientes/{{ customer.id }}"><span class="font-semibold">{{ customer.name }}</span><span class="block text-xs text-cocoa-700">{{ customer.phone }} {{ customer.doc_id }}</span></a>
+    {% if customer.consent %}<span class="badge-ok">Datos autorizados</span>{% else %}<span class="badge-bad">Sin autorización</span>{% endif %}
+  </li>
+  {% else %}
+  <li class="py-6 text-cocoa-700">Ninguna clienta coincide.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

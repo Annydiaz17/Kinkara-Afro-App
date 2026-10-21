@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Hoy · KINKARA AFRO{% endblock %}
+{% block content %}
+<div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gold-700">{{ day|largo }}</p>
+    <h1 class="font-display text-4xl">Hoy en la tienda</h1>
+  </div>
+  {% if not caja %}
+  <a href="/caja" class="btn-gold">Abrir la caja</a>
+  {% else %}
+  <a href="/vender" class="btn-primary">Registrar una venta</a>
+  {% endif %}
+</div>
+<div class="grid gap-3 md:grid-cols-3">
+  <a href="/ventas" class="card p-4">
+    <div class="text-sm text-cocoa-700">Ventas entregadas</div>
+    <div class="num mt-1 font-display text-3xl">{{ delivered_total|money }}</div>
+    <div class="muted">{{ delivered_count }} comprobante{% if delivered_count != 1 %}s{% endif %}</div>
+  </a>
+  <a href="/separados" class="card p-4">
+    <div class="text-sm text-cocoa-700">Abonos de separados</div>
+    <div class="num mt-1 font-display text-3xl">{{ layaway_today|money }}</div>
+    <div class="muted">Anticipo. Entra a la caja y no es venta.</div>
+  </a>
+  <a href="/fiados" class="card p-4">
+    <div class="text-sm text-cocoa-700">Abonos de fiados</div>
+    <div class="num mt-1 font-display text-3xl">{{ credit_today|money }}</div>
+    <div class="muted">Cobro de una deuda, no una venta nueva.</div>
+  </a>
+</div>
+<p class="mt-3 text-sm text-cocoa-700">La ganancia sale solo de lo que ya se entregó. Sumar estos tres números repite el error de anotar como utilidad todo el efectivo del día.</p>
+{% if user.is_admin %}
+<div class="card mt-4 flex flex-wrap items-center justify-between gap-3 p-4">
+  <div>
+    <div class="text-sm text-cocoa-700">Ganancia estimada de hoy</div>
+    <div class="num font-display text-3xl">{{ report.net|money }}</div>
+    <div class="muted">Ventas {{ report.net_sales|money }} − costo {{ report.cogs|money }} − gastos {{ (report.expenses + report.payroll)|money }}</div>
+  </div>
+  <a href="/ganancias" class="btn-ghost">Ver el periodo</a>
+</div>
+{% endif %}
+<section class="mt-6">
+  <h2 class="font-display text-2xl">Dónde está el dinero</h2>
+  <div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    {% for account in accounts %}
+    <a href="/cuentas/{{ account.id }}" class="card p-4">
+      <div class="text-sm text-cocoa-700">{{ account.name }}</div>
+      <div class="num font-display text-2xl">{{ account.balance|money }}</div>
+      {% if account.code == 'ahorro' %}
+      <div class="mt-2 text-xs text-cocoa-700">Anticipos de separados sin entregar: <span class="num font-semibold">{{ committed|money }}</span>. Ese dinero está en las cuentas, pero sigue siendo de las clientas.</div>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </div>
+</section>
+<div class="mt-6 grid gap-4 lg:grid-cols-2">
+  <section class="card p-4">
+    <h2 class="font-display text-2xl">Para reponer</h2>
+    {% if alerts %}
+    <ul class="mt-3 divide-y divide-cream-200">
+      {% for item in alerts %}
+      <li class="flex items-center justify-between gap-3 py-2">
+        <div>
+          <div class="font-medium">{{ item.variant.product.name }}</div>
+          <div class="text-xs text-cocoa-700">{{ item.variant.short }} · {{ item.variant.sku }}</div>
+        </div>
+        {% if item.state.agotado %}<span class="badge-bad">Agotado{% if item.state.reserved %} · {{ item.state.reserved }} reservada{% endif %}</span>{% else %}<span class="badge-warn">Bajo · {{ item.state.available }}</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="mt-3 text-sm text-cocoa-700">Nada está bajo el mínimo.</p>
+    {% endif %}
+    <a href="/inventario" class="mt-3 inline-block text-sm font-semibold text-gold-700">Ver inventario</a>
+  </section>
+  <section class="card p-4">
+    <h2 class="font-display text-2xl">Separados por vencer</h2>
+    {% if due_layaways %}
+    <ul class="mt-3 divide-y divide-cream-200">
+      {% for item in due_layaways %}
+      <li class="flex items-center justify-between gap-3 py-2">
+        <div>
+          <div class="font-medium">{{ item.layaway.customer.name }}</div>
+          <div class="text-xs text-cocoa-700">{{ item.layaway.number }} · saldo {{ item.layaway.balance|money }} · {{ item.days }} días</div>
+        </div>
+        <span class="{% if item.state == 'vencido' %}badge-bad{% else %}badge-warn{% endif %}">{% if item.state == 'vencido' %}Vencido{% else %}Por vencer{% endif %}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="mt-3 text-sm text-cocoa-700">Ningún separado vence en los próximos días.</p>
+    {% endif %}
+  </section>
+</div>
+{% if user.is_admin %}
+<div class="mt-4 grid gap-3 sm:grid-cols-2">
+  <a href="/fiados" class="card p-4"><div class="text-sm text-cocoa-700">Cartera de clientas</div><div class="num font-display text-2xl">{{ receivables|money }}</div></a>
+  <a href="/compras" class="card p-4"><div class="text-sm text-cocoa-700">Por pagar a proveedores</div><div class="num font-display text-2xl">{{ payables|money }}</div></a>
+</div>
+{% endif %}
+<section class="mt-6">
+  <h2 class="font-display text-2xl">Últimos comprobantes</h2>
+  {% if recent %}
+  <div class="mt-3 overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="text-left text-cocoa-700"><tr><th class="py-2">Número</th><th>Hora</th><th>Total</th><th>Estado</th></tr></thead>
+      <tbody>
+        {% for sale in recent %}
+        <tr class="border-t border-cream-200">
+          <td class="py-2"><a class="font-semibold" href="/ventas/{{ sale.id }}">{{ sale.number }}</a></td>
+          <td>{{ sale.created_at|dt }}</td>
+          <td class="num">{{ sale.total|money }}</td>
+          <td>{{ sale.status }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="mt-3 text-sm text-cocoa-700">Todavía no hay ventas. Cuando confirmes la primera, aparece aquí. Los separados se ven en su propia lista.</p>
+  {% endif %}
+</section>
+{% endblock %}

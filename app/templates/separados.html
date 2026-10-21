@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Separados{% endblock %}
+{% block content %}
+<div class="mb-2 flex flex-wrap items-end justify-between gap-3">
+  <h1 class="font-display text-4xl">Separados</h1>
+  <p class="text-sm">Anticipos sin entregar: <span class="num font-semibold">{{ committed|money }}</span></p>
+</div>
+<p class="mb-4 max-w-2xl text-sm text-cocoa-700">La unidad queda reservada. El abono entra a la cuenta del medio de pago y no cuenta como venta hasta la entrega. El plazo es de {{ days }} días.</p>
+{% if not caja %}<p class="mb-3 rounded-xl bg-gold-200 px-3 py-2 text-sm">Abre la caja para crear un separado o recibir un abono. <a class="font-semibold underline" href="/caja">Abrir</a></p>{% endif %}
+<form method="post" action="/separados" class="card grid gap-2 p-4 md:grid-cols-2">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <input type="hidden" name="idem" value="{{ idem }}">
+  <select class="input" name="customer_id" required><option value="">Clienta</option>{% for customer in customers %}<option value="{{ customer.id }}">{{ customer.name }}</option>{% endfor %}</select>
+  <select class="input" name="variant_id" required><option value="">Producto</option>{% for variant in variants %}<option value="{{ variant.id }}">{{ variant.product.name }} · {{ variant.short }} · {{ variant.sku }}</option>{% endfor %}</select>
+  <input class="input" name="qty" value="1" placeholder="Cantidad">
+  <input class="input" name="agreed_price" placeholder="Precio acordado" required>
+  <input class="input" name="deposit" placeholder="Abono inicial" required>
+  <select class="input" name="method">{% for code, label in METHODS.items() %}<option value="{{ code }}">{{ label }}</option>{% endfor %}</select>
+  <label class="text-sm md:col-span-2"><input type="checkbox" name="allow_below_minimum" value="1"> Autorizar abono menor al {{ min_pct }}% (pide clave si no eres administración)</label>
+  <input class="input" name="admin_username" placeholder="Usuario admin">
+  <input class="input" name="admin_password" type="password" placeholder="Clave admin">
+  <button class="btn-gold md:col-span-2" {% if not caja %}disabled{% endif %}>Reservar</button>
+</form>
+<div class="mt-5 space-y-2">
+  {% for item in items %}
+  <a href="/separados/{{ item.layaway.id }}" class="card flex items-center justify-between gap-3 p-4">
+    <div>
+      <div class="font-semibold">{{ item.layaway.customer.name }}</div>
+      <div class="text-sm text-cocoa-700">{{ item.layaway.number }} · {{ item.layaway.variant.product.name }} · {{ item.days }} días</div>
+    </div>
+    <div class="text-right">
+      <div class="num">{{ item.layaway.paid|money }} / {{ item.layaway.agreed_price|money }}</div>
+      <span class="{% if item.state == 'vencido' %}badge-bad{% elif item.state == 'por_vencer' %}badge-warn{% elif item.state == 'activo' %}badge-ok{% else %}badge-mute{% endif %}">{{ item.state }}</span>
+    </div>
+  </a>
+  {% else %}
+  <p class="text-cocoa-700">No hay separados.</p>
+  {% endfor %}
+</div>
+{% endblock %}

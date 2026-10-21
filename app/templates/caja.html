@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Caja · KINKARA AFRO{% endblock %}
+{% block content %}
+<div class="mb-4 flex items-end justify-between">
+  <h1 class="font-display text-4xl">Caja</h1>
+  <p class="text-sm text-cocoa-700">Una sola caja, compartida.</p>
+</div>
+{% if session and session.status == 'abierta' %}
+<div class="grid gap-4 lg:grid-cols-2">
+  <section class="card p-4">
+    <div class="flex items-center justify-between"><h2 class="font-display text-2xl">{{ session.number }}</h2><span class="badge-ok">Abierta</span></div>
+    <p class="mt-1 text-sm text-cocoa-700">La abrió {{ session.opened_by.full_name }} · {{ session.opened_at|dt }}</p>
+    <dl class="mt-4 space-y-1 text-sm">
+      <div class="flex justify-between"><dt>Base del sistema</dt><dd class="num">{{ session.opening_base|money }}</dd></div>
+      <div class="flex justify-between"><dt>Contado al abrir</dt><dd class="num">{{ session.counted_open|money }}</dd></div>
+      <div class="flex justify-between"><dt>Diferencia de apertura</dt><dd class="num">{{ session.open_diff|money }}</dd></div>
+      <div class="flex justify-between"><dt>Ventas en efectivo</dt><dd class="num">{{ flows.sales|money }}</dd></div>
+      <div class="flex justify-between"><dt>Abonos de separados</dt><dd class="num">{{ flows.layaways|money }}</dd></div>
+      <div class="flex justify-between"><dt>Abonos de fiados</dt><dd class="num">{{ flows.credits|money }}</dd></div>
+      <div class="flex justify-between"><dt>Gastos y nómina</dt><dd class="num">{{ (flows.expenses + flows.payroll)|money }}</dd></div>
+      <div class="flex justify-between"><dt>Proveedores</dt><dd class="num">{{ flows.suppliers|money }}</dd></div>
+      <div class="flex justify-between"><dt>Devoluciones</dt><dd class="num">{{ flows.refunds|money }}</dd></div>
+      <div class="flex justify-between font-semibold"><dt>Efectivo esperado</dt><dd class="num">{{ flows.expected|money }}</dd></div>
+    </dl>
+    <a class="mt-3 inline-block text-sm font-semibold text-gold-700" href="/caja/{{ session.id }}">Ver la hoja</a>
+  </section>
+  <form method="post" action="/caja/cerrar" class="card space-y-3 p-4">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <h2 class="font-display text-2xl">Cerrar turno</h2>
+    <div><label class="label">Efectivo contado</label><input class="input" name="counted" inputmode="numeric" required value="{{ flows.expected }}"></div>
+    <div><label class="label">Trasladar a</label>
+      <select class="input" name="transfer_account_id"><option value="">No trasladar</option>{% for account in accounts if account.code != 'caja' %}<option value="{{ account.id }}" {% if account.code == 'ahorro' %}selected{% endif %}>{{ account.name }}</option>{% endfor %}</select>
+    </div>
+    <div><label class="label">Valor del traslado</label><input class="input" name="transfer_amount" inputmode="numeric" value="0"></div>
+    <div><label class="label">Observación</label><input class="input" name="note" placeholder="Opcional"></div>
+    <button class="btn-primary w-full">Cerrar caja</button>
+    <p class="text-xs text-cocoa-700">Después del conteo, lo que queda en la caja es la base de mañana.</p>
+  </form>
+</div>
+{% else %}
+<form method="post" action="/caja/abrir" class="card max-w-lg space-y-3 p-5">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <h2 class="font-display text-2xl">Abrir la caja</h2>
+  <p class="text-sm text-cocoa-700">La base se toma del saldo de efectivo: <span class="num font-semibold">{{ caja_balance|money }}</span>. Si el conteo es distinto, queda registrada la diferencia.</p>
+  <div><label class="label">Efectivo contado ahora</label><input class="input" name="counted" inputmode="numeric" required value="{{ caja_balance }}"></div>
+  <div><label class="label">Observación</label><input class="input" name="note"></div>
+  <button class="btn-gold">Abrir caja</button>
+</form>
+{% endif %}
+<section class="mt-8">
+  <h2 class="font-display text-2xl">Cierres</h2>
+  <div class="mt-3 overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="text-left text-cocoa-700"><tr><th class="py-2">Turno</th><th>Cuándo</th><th>Esperado</th><th>Contado</th><th>Diferencia</th><th>Base siguiente</th></tr></thead>
+      <tbody>
+        {% for item in history %}
+        <tr class="border-t border-cream-200">
+          <td class="py-2"><a class="font-semibold" href="/caja/{{ item.id }}">{{ item.number }}</a></td>
+          <td>{{ item.opened_at|dt }}</td>
+          <td class="num">{{ item.expected|money if item.expected is not none else "—" }}</td>
+          <td class="num">{{ item.counted_close|money if item.counted_close is not none else "—" }}</td>
+          <td class="num">{{ item.close_diff|money if item.close_diff is not none else "—" }}</td>
+          <td class="num">{{ item.closing_base|money if item.closing_base is not none else "—" }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="py-4 text-cocoa-700">Todavía no hay un cierre. El primero reemplaza la hoja de papel.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

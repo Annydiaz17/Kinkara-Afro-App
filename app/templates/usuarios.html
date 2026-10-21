@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Usuarios{% endblock %}
+{% block content %}
+<h1 class="font-display text-4xl">Usuarios</h1>
+<p class="mt-2 text-sm text-cocoa-700">Caja no cambia costos, no borra movimientos y no ajusta inventario sin autorización.</p>
+<form method="post" action="/usuarios" class="card mt-4 grid gap-2 p-4 md:grid-cols-2">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <input class="input" name="full_name" placeholder="Nombre" required>
+  <input class="input" name="username" placeholder="Usuario" required>
+  <input class="input" name="password" type="password" placeholder="Contraseña" required>
+  <select class="input" name="role"><option value="cajero">Caja</option><option value="admin">Administración</option></select>
+  <button class="btn-primary">Crear</button>
+</form>
+<div class="mt-4 space-y-3">
+  {% for person in people %}
+  <form method="post" action="/usuarios/{{ person.id }}" class="card grid gap-2 p-4 md:grid-cols-4">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <input class="input" name="full_name" value="{{ person.full_name }}">
+    <select class="input" name="role"><option value="cajero" {% if person.role == 'cajero' %}selected{% endif %}>Caja</option><option value="admin" {% if person.role == 'admin' %}selected{% endif %}>Administración</option></select>
+    <input class="input" name="password" type="password" placeholder="Nueva clave, si cambia">
+    <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="active" value="1" {% if person.active %}checked{% endif %}> Activo</label>
+    <button class="btn-ghost md:col-span-4">Guardar</button>
+  </form>
+  {% endfor %}
+</div>
+{% endblock %}

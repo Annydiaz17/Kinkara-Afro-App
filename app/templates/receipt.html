@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ sale.number }} · KINKARA AFRO{% endblock %}
+{% block content %}
+<div class="no-print mb-4 flex gap-2">
+  <a href="/vender" class="btn-primary">Nueva venta</a>
+  <button class="btn-ghost" onclick="window.print()">Imprimir</button>
+</div>
+<article class="sheet mx-auto max-w-md rounded-2xl border border-cream-300 bg-white p-6 shadow-sm">
+  <div class="text-center">
+    <div class="font-display text-3xl">Kinkara</div>
+    <div class="text-[10px] tracking-[0.35em] text-gold-700">AFRO</div>
+    {% if city or phone %}<p class="mt-1 text-xs">{{ city }} {{ phone }}</p>{% endif %}
+    <p class="mt-3 font-semibold">{{ sale.number }}</p>
+    <p class="text-xs">{{ sale.created_at|dt }} · {{ sale.user.full_name }}</p>
+    {% if sale.customer %}<p class="text-sm">{{ sale.customer.name }}</p>{% endif %}
+  </div>
+  <table class="mt-4 w-full text-sm">
+    {% for line in sale.lines %}
+    <tr>
+      <td class="py-1">{{ line.variant.product.name }}<div class="text-xs text-cocoa-700">{{ line.qty }} {{ line.bucket }} × {{ line.unit_price|money }}</div></td>
+      <td class="num py-1 text-right align-top">{{ line.line_total|money }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <dl class="mt-3 space-y-1 border-t border-dashed border-cream-300 pt-3 text-sm">
+    <div class="flex justify-between"><dt>Subtotal</dt><dd class="num">{{ sale.subtotal|money }}</dd></div>
+    {% if sale.discount_amount %}<div class="flex justify-between"><dt>Descuento {{ sale.discount_pct }}%</dt><dd class="num">−{{ sale.discount_amount|money }}</dd></div>{% endif %}
+    <div class="flex justify-between font-display text-2xl"><dt>Total</dt><dd class="num">{{ sale.total|money }}</dd></div>
+    <div class="flex justify-between"><dt>Pagado</dt><dd class="num">{{ sale.paid|money }}</dd></div>
+    {% if sale.balance %}<div class="flex justify-between font-semibold"><dt>Saldo</dt><dd class="num">{{ sale.balance|money }}</dd></div>{% endif %}
+  </dl>
+  <ul class="mt-3 text-sm">
+    {% for pay in payments %}
+    <li class="flex justify-between"><span>{{ METHODS.get(pay.method, pay.method) }} · {{ pay.status }}</span><span class="num">{{ pay.amount|money }}</span></li>
+    {% endfor %}
+  </ul>
+  {% if sale.note %}<p class="mt-3 text-xs text-cocoa-700">{{ sale.note }}</p>{% endif %}
+  <p class="mt-4 text-center text-xs font-semibold uppercase tracking-wide">{{ legend }}</p>
+</article>
+{% if user.is_admin and sale.status != 'anulada' and sale.source != 'separado' %}
+<section class="no-print mx-auto mt-6 max-w-md space-y-4">
+  {% for pay in payments if pay.status == 'pendiente' %}
+  <form method="post" action="/pagos/{{ pay.id }}/confirmar" class="card flex items-center justify-between p-3">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <span class="text-sm">{{ METHODS.get(pay.method, pay.method) }} pendiente {{ pay.amount|money }}</span>
+    <button class="btn-primary !py-1.5">Confirmar</button>
+  </form>
+  {% endfor %}
+  <form method="post" action="/ventas/{{ sale.id }}/anular" class="card space-y-2 p-4">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <h2 class="font-display text-xl">Anular</h2>
+    <input class="input" name="reason" placeholder="Motivo" required>
+    <input class="input" name="admin_password" type="password" placeholder="Clave de administración" required>
+    <button class="btn-danger">Anular comprobante</button>
+  </form>
+  {% for line in sale.lines if line.remaining %}
+  <form method="post" action="/ventas/{{ sale.id }}/devolver" class="card space-y-2 p-4">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <input type="hidden" name="line_id" value="{{ line.id }}">
+    <h2 class="font-display text-xl">Devolver {{ line.variant.product.name }}</h2>
+    <p class="text-xs text-cocoa-700">{% if line.variant.product.returnable %}Admite devolución. Quedan {{ line.remaining }}.{% else %}Este producto no admite devolución.{% endif %}</p>
+    <input class="input" name="qty" value="{{ line.remaining }}">
+    <select class="input" name="disposition"><option value="stock">Vuelve a estar disponible</option><option value="no_vendible">Queda no vendible</option></select>
+    <input class="input" name="refund_amount" placeholder="Valor a devolver">
+    <select class="input" name="method">{% for code, label in METHODS.items() %}<option value="{{ code }}">{{ label }}</option>{% endfor %}</select>
+    <input class="input" name="reason" placeholder="Motivo" required>
+    <input class="input" name="admin_password" type="password" placeholder="Clave de administración" required>
+    <button class="btn-ghost">Registrar devolución</button>
+  </form>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

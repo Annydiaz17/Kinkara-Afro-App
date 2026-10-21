@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Productos{% endblock %}
+{% block content %}
+<div class="mb-4 flex items-end justify-between gap-3">
+  <h1 class="font-display text-4xl">Productos</h1>
+  {% if user.is_admin %}<a href="/productos/nuevo" class="btn-primary">Nuevo</a>{% endif %}
+</div>
+<form class="mb-4" method="get"><input class="input max-w-md" name="q" value="{{ q }}" placeholder="Nombre o código"></form>
+<div class="grid gap-3">
+  {% for product in products %}
+  <a href="/productos/{{ product.id }}" class="card flex items-center justify-between p-4">
+    <div>
+      <div class="text-xs text-cocoa-700">{{ product.code }} · {{ product.category.name }}</div>
+      <div class="font-display text-2xl">{{ product.name }}</div>
+      <div class="text-xs text-cocoa-700">{{ product.variants|length }} variante{% if product.variants|length != 1 %}s{% endif %}{% if not product.active %} · inactivo{% endif %}{% if product.returnable %} · admite devolución{% endif %}</div>
+    </div>
+    {% if product.quick_sale %}<span class="badge-warn">Venta rápida</span>{% endif %}
+  </a>
+  {% else %}
+  <p class="text-cocoa-700">No hay productos con ese filtro.</p>
+  {% endfor %}
+</div>
+{% endblock %}

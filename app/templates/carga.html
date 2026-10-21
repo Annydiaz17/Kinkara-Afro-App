@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Carga inicial{% endblock %}
+{% block content %}
+<h1 class="font-display text-4xl">Inventario inicial</h1>
+<p class="mt-2 max-w-2xl text-sm text-cocoa-700">Descarga la plantilla, llénala con el conteo físico y revísala antes de confirmar. Una carga confirmada deja movimientos de apertura. Si una peluca ya está separada, la fila lleva la clienta y lo abonado.</p>
+<a class="btn-ghost mt-4" href="/inventario/plantilla.xlsx">Descargar plantilla</a>
+<form method="post" action="/inventario/carga" enctype="multipart/form-data" class="card mt-4 max-w-lg space-y-3 p-4">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <input class="input" type="file" name="archivo" accept=".xlsx" required>
+  <button class="btn-primary">Revisar archivo</button>
+</form>
+{% endblock %}
