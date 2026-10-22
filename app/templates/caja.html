@@ -13,7 +13,7 @@
     <dl class="mt-4 space-y-1 text-sm">
       <div class="flex justify-between"><dt>Base del sistema</dt><dd class="num">{{ session.opening_base|money }}</dd></div>
       <div class="flex justify-between"><dt>Contado al abrir</dt><dd class="num">{{ session.counted_open|money }}</dd></div>
-      <div class="flex justify-between"><dt>Diferencia de apertura</dt><dd class="num">{{ session.open_diff|money }}</dd></div>
+      <div class="flex justify-between"><dt>Diferencia de apertura</dt><dd class="num{% if session.open_diff == 0 %} diff-ok{% else %} diff-alert{% endif %}">{{ session.open_diff|money }}</dd></div>
       <div class="flex justify-between"><dt>Ventas en efectivo</dt><dd class="num">{{ flows.sales|money }}</dd></div>
       <div class="flex justify-between"><dt>Abonos de separados</dt><dd class="num">{{ flows.layaways|money }}</dd></div>
       <div class="flex justify-between"><dt>Abonos de fiados</dt><dd class="num">{{ flows.credits|money }}</dd></div>
@@ -59,7 +59,7 @@
           <td>{{ item.opened_at|dt }}</td>
           <td class="num">{{ item.expected|money if item.expected is not none else "—" }}</td>
           <td class="num">{{ item.counted_close|money if item.counted_close is not none else "—" }}</td>
-          <td class="num">{{ item.close_diff|money if item.close_diff is not none else "—" }}</td>
+          <td class="num{% if item.close_diff == 0 %} diff-ok{% elif item.close_diff is not none %} diff-alert{% endif %}">{{ item.close_diff|money if item.close_diff is not none else "—" }}</td>
           <td class="num">{{ item.closing_base|money if item.closing_base is not none else "—" }}</td>
         </tr>
         {% else %}

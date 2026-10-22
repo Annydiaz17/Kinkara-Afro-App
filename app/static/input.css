@@ -1,78 +1,247 @@
 @import "tailwindcss";
 @source "../templates";
 
+:root {
+  --fondo: #FBF7F4;
+  --tarjeta: #FFFFFF;
+  --rosa: #F3E3DE;
+  --vino: #6E1B2E;
+  --vino-hover: #5A1525;
+  --menu: #2E0F17;
+  --bronce: #A87A3D;
+  --texto: #2A1D1A;
+  --texto-suave: #7A6A66;
+  --borde: #EADCD6;
+  --ok: #2F6B4F;
+  --ok-suave: #E7F3EC;
+  --alerta: #C2410C;
+  --alerta-suave: #FDECE6;
+}
+
 @theme {
-  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
-  --color-cocoa-950: #1a140f;
-  --color-cocoa-900: #241c16;
-  --color-cocoa-800: #3a2d23;
-  --color-cocoa-700: #5c4634;
-  --color-gold-200: #f6ead0;
-  --color-gold-300: #f0ddb0;
-  --color-gold-400: #e4c98a;
-  --color-gold-500: #c6a15a;
-  --color-gold-700: #7c5a2a;
-  --color-cream-50: #fbf8f2;
-  --color-cream-100: #f3efe6;
-  --color-cream-200: #e7dfd0;
-  --color-cream-300: #d5c8b2;
-  --color-moss-50: #e7f6ee;
-  --color-moss-700: #17613d;
-  --color-clay-50: #fdeee8;
-  --color-clay-700: #8d341f;
-  --color-ink: #1c140f;
+  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --color-cocoa-950: #2E0F17;
+  --color-cocoa-900: #6E1B2E;
+  --color-cocoa-800: #2A1D1A;
+  --color-cocoa-700: #7A6A66;
+  --color-gold-200: #F3E3DE;
+  --color-gold-300: #F3E3DE;
+  --color-gold-400: #A87A3D;
+  --color-gold-500: #A87A3D;
+  --color-gold-700: #6E1B2E;
+  --color-cream-50: #FFFFFF;
+  --color-cream-100: #FBF7F4;
+  --color-cream-200: #EADCD6;
+  --color-cream-300: #EADCD6;
+  --color-moss-50: #E7F3EC;
+  --color-moss-700: #2F6B4F;
+  --color-clay-50: #FDECE6;
+  --color-clay-700: #C2410C;
+  --color-ink: #2A1D1A;
 }
 
 @layer base {
   html { scroll-behavior: smooth; }
   body {
-    background-color: var(--color-cream-100);
-    background-image:
-      radial-gradient(circle at 8% -8%, rgba(198, 161, 90, 0.22), transparent 34%),
-      radial-gradient(circle at 110% 0%, rgba(141, 52, 31, 0.07), transparent 26%);
-    color: var(--color-ink);
+    background: var(--fondo);
+    color: var(--texto);
     font-family: var(--font-sans);
     min-height: 100vh;
   }
-  h1, h2, .font-display { font-family: var(--font-display); font-optical-sizing: auto; }
+  h1, h2, .font-display {
+    font-family: var(--font-display);
+    font-weight: 400;
+  }
   [x-cloak] { display: none !important; }
+  ::selection { background: var(--rosa); color: var(--texto); }
 }
 
 @layer components {
   .input {
-    @apply w-full rounded-xl border border-cream-300 bg-white px-3 py-2.5 text-base text-ink outline-none transition focus:border-gold-500 focus:ring-2 focus:ring-gold-400/40;
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    background: var(--tarjeta);
+    color: var(--texto);
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    outline: none;
   }
-  .label { @apply mb-1 block text-sm font-medium text-cocoa-800; }
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50;
+  .input:focus {
+    border-color: var(--vino);
+    box-shadow: 0 0 0 3px rgba(110, 27, 46, 0.15);
   }
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 bg-cocoa-900 text-cream-50 hover:bg-cocoa-800;
+  .label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; font-weight: 500; color: var(--texto); }
+  .btn-primary, .btn-gold, .btn-ghost, .btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    border-radius: 10px;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: none;
+    text-decoration: none;
   }
-  .btn-gold {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 bg-gold-500 text-cocoa-950 hover:bg-gold-400;
+  .btn-primary, .btn-gold {
+    background: var(--vino);
+    color: #fff;
+    border: 1px solid var(--vino);
   }
+  .btn-primary:hover, .btn-gold:hover { background: var(--vino-hover); border-color: var(--vino-hover); color: #fff; }
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 border border-cream-300 bg-white text-cocoa-900 hover:bg-cream-50;
+    background: var(--tarjeta);
+    color: var(--texto);
+    border: 1px solid var(--borde);
   }
+  .btn-ghost:hover { background: var(--rosa); color: var(--texto); }
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 bg-clay-700 text-white hover:bg-clay-700/90;
+    background: var(--alerta);
+    color: #fff;
+    border: 1px solid var(--alerta);
   }
-  .card { @apply rounded-2xl border border-cream-200 bg-white/90 shadow-[0_1px_0_rgba(36,28,22,0.04)] ; }
-  .muted { @apply text-sm text-cocoa-700/80; }
+  .btn-danger:hover { background: #9A3412; color: #fff; }
+  .btn-primary:disabled, .btn-gold:disabled, .btn-ghost:disabled, .btn-danger:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .card {
+    background: var(--tarjeta);
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+  .muted { font-size: 0.875rem; color: var(--texto-suave); }
   .num { font-variant-numeric: tabular-nums; }
-  .nav-link { @apply flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-cream-200/80 hover:bg-white/5 hover:text-cream-50; }
-  .nav-link.active { @apply bg-white/10 text-gold-300; }
-  .badge { @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold; }
-  .badge-ok { @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-moss-50 text-moss-700; }
-  .badge-warn { @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-gold-200 text-gold-700; }
-  .badge-bad { @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-clay-50 text-clay-700; }
-  .badge-mute { @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-cream-200 text-cocoa-800; }
+  table .num { text-align: right; }
+  .nav-link {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    border-left: 3px solid transparent;
+    border-radius: 0;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.875rem;
+    color: #F3E3DE;
+  }
+  .nav-link:hover { background: rgba(243, 227, 222, 0.08); color: #F3E3DE; }
+  .nav-link.active {
+    background: rgba(243, 227, 222, 0.12);
+    border-left-color: var(--bronce);
+    color: #F3E3DE;
+  }
+  .badge, .badge-ok, .badge-warn, .badge-bad, .badge-mute {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 6px;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge-ok { background: var(--ok-suave); color: var(--ok); }
+  .badge-warn { background: var(--rosa); color: var(--texto); }
+  .badge-bad { background: var(--alerta-suave); color: var(--alerta); }
+  .badge-mute { background: var(--tarjeta); color: var(--texto); border: 1px solid var(--borde); }
+  .mark-kinkara {
+    font-family: var(--font-display);
+    font-weight: 400;
+    line-height: 1;
+    color: inherit;
+  }
+  .mark-afro {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: var(--bronce);
+  }
+  .mark-afro-light {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: var(--vino);
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    border-radius: 6px;
+    padding: 0 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .chip-open { background: var(--ok-suave); color: var(--ok); }
+  .chip-closed { background: var(--rosa); color: var(--texto); }
+  .diff-ok { color: var(--ok); font-weight: 600; }
+  .diff-alert { color: var(--alerta); font-weight: 600; }
+  .tabbar a, .tabbar button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+  }
+  .more-link {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    background: var(--tarjeta);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--texto);
+    text-decoration: none;
+  }
+  .app-menu { background: var(--menu); color: #F3E3DE; }
+}
+
+main a:not(.btn-primary):not(.btn-gold):not(.btn-ghost):not(.btn-danger):not(.card):not(.chip) {
+  color: var(--vino);
+}
+main a:not(.btn-primary):not(.btn-gold):not(.btn-ghost):not(.btn-danger):not(.card):not(.chip):hover {
+  color: var(--vino-hover);
+}
+main a.card, main a.card:hover { color: var(--texto); text-decoration: none; }
+tbody tr:hover { background: var(--rosa); }
+
+@media (max-width: 767px) {
+  .grid { min-width: 0; }
+  main, .grid > * { min-width: 0; }
 }
 
 @media print {
-  .no-print { display: none !important; }
-  body { background: white !important; }
-  .sheet { box-shadow: none !important; border: none !important; }
+  .no-print, aside, header, nav, .tabbar { display: none !important; }
+  .shell { padding-left: 0 !important; }
+  body { background: #fff !important; color: #000 !important; }
+  main { max-width: none !important; padding: 0 !important; }
+  .sheet {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .sheet, .sheet * { color: #000 !important; background: transparent !important; box-shadow: none !important; }
+  .sheet h1 { font-size: 16pt; text-align: center; }
+  .sheet h2 {
+    margin-top: 14pt;
+    border-bottom: 1px solid #000;
+    padding-bottom: 2pt;
+    font-family: "Figtree", sans-serif;
+    font-size: 11pt;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .sheet .row { border-bottom: 1px solid #000; }
+  @page { margin: 14mm; }
 }
