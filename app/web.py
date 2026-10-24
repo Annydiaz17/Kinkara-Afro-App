@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import secrets
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Request
@@ -19,7 +20,7 @@ from app.logic.common import BusinessError, find_open_session, setting
 from app.logic.sales import AlreadyDone, empty_cart
 from app.models import Base, User
 from app.seed import ensure_settings, seed_demo
-from app.utils import METHODS, fmt_date, fmt_dt, fmt_long, money
+from app.utils import BOGOTA, MESES_LARGOS, METHODS, fmt_date, fmt_dt, fmt_long, money
 
 TEMPLATES = Path(__file__).parent / "templates"
 STATIC = Path(__file__).parent / "static"
@@ -131,10 +132,44 @@ class See(Exception):
         self.url = url
 
 
+def shelf_alerts(db: Session) -> dict:
+    """Cuenta las alertas que ya calcula el inventario y los separados, para la campana."""
+    from app.logic.catalog import low_stock, variant_state
+    from app.logic.common import setting_int
+    from app.logic.sales import layaway_state
+    from app.models import Layaway
+
+    agotados = bajos = 0
+    for variant in low_stock(db):
+        state = variant_state(variant)
+        if state["agotado"]:
+            agotados += 1
+        elif state["bajo"]:
+            bajos += 1
+    alert_days = setting_int(db, "layaway_alert_days")
+    due = 0
+    active = db.scalars(select(Layaway).where(Layaway.status == "activo")).all()
+    for layaway in active:
+        if layaway_state(layaway, alert_days) in {"por_vencer", "vencido"}:
+            due += 1
+    return {
+        "bell_agotados": agotados,
+        "bell_bajos": bajos,
+        "bell_due": due,
+        "alert_count": agotados + bajos + due,
+    }
+
+
 def render(request: Request, db: Session, name: str, status: int = 200, *, partial: bool = False, **ctx):
     user = ctx.get("user", current_user(request, db))
     nav = [item for item in NAV if item[2] == "both" or (user and user.is_admin)]
     ctx.setdefault("user", user)
+    now = datetime.now(BOGOTA)
+    hour12 = now.hour % 12 or 12
+    days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    bells = shelf_alerts(db) if user and not partial else {
+        "bell_agotados": 0, "bell_bajos": 0, "bell_due": 0, "alert_count": 0,
+    }
     ctx.update({
         "request": request,
         "caja": find_open_session(db) if user else None,
@@ -144,6 +179,9 @@ def render(request: Request, db: Session, name: str, status: int = 200, *, parti
         "business": setting(db, "business_name") if user or name == "login.html" else "KINKARA AFRO",
         "demo_hint": setting(db, "show_demo_hint") == "1",
         "legend": setting(db, "receipt_legend"),
+        "clock_date": f"{days[now.weekday()]}, {now.day} de {MESES_LARGOS[now.month - 1]} de {now.year}",
+        "clock_time": f"{hour12}:{now.minute:02d} {'a. m.' if now.hour < 12 else 'p. m.'}",
+        **bells,
     })
     return templates.TemplateResponse(request, name, ctx, status_code=status)
 

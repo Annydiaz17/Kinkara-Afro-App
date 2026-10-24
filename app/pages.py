@@ -104,7 +104,7 @@ from app.models import (
     Variant,
 )
 from app.reports import TITLES, build_report, money_rows, to_pdf, to_xlsx
-from app.utils import as_bogota, fold, fmt_dt, money, parse_date, parse_int, parse_money, period_bounds, today_bogota, utcnow
+from app.utils import MESES, as_bogota, fold, fmt_dt, money, parse_date, parse_int, parse_money, period_bounds, today_bogota, utcnow
 from app.web import (
     cart_of,
     get_db,
@@ -199,8 +199,224 @@ async def logout(request: Request, form=Depends(posted)):
 
 @router.get("/")
 def home(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
-    data = dashboard(db)
+    raw = (request.query_params.get("dia") or "").strip()
+    chosen = None
+    if raw:
+        try:
+            chosen = date.fromisoformat(raw)
+        except ValueError:
+            chosen = None
+    data = dashboard(db, chosen)
+    data.update(_home_view(db, data))
     return render(request, db, "dashboard.html", user=user, **data)
+
+
+def _home_view(db: Session, data: dict) -> dict:
+    from app.logic.profit import _returned_total
+
+    variants = db.scalars(
+        select(Variant).join(Product).where(Variant.active.is_(True), Product.active.is_(True))
+    ).all()
+    agotados = bajos = valor = 0
+    for variant in variants:
+        state = variant_state(variant)
+        if state["agotado"]:
+            agotados += 1
+        elif state["bajo"]:
+            bajos += 1
+        if variant.unit == "gramo":
+            grams = variant.stock_packages * (variant.package_weight_g or 0) + variant.stock_grams
+            valor += grams * int(variant.cost)
+        else:
+            valor += int(variant.stock_units) * int(variant.cost)
+    logs = db.scalars(select(AuditLog).order_by(AuditLog.id.desc()).limit(5)).all()
+    banner = (Path(__file__).resolve().parent / "static" / "img" / "banner.jpg").is_file()
+    return {
+        "agotados": agotados,
+        "bajos": bajos,
+        "referencias": len(variants),
+        "inventario_valor": valor,
+        "alert_count": agotados + bajos + int(data["due_count"]),
+        "activity": [_activity_row(log) for log in logs],
+        "chart": _sales_chart(data["sales_today"], _returned_total),
+        "banner": banner,
+        "today": today_bogota(),
+    }
+
+
+_ACTION_TITLE = {
+    "confirmar_venta": "Venta registrada",
+    "anular_venta": "Venta anulada",
+    "devolucion": "Devolución",
+    "confirmar_pago": "Pago confirmado",
+    "abono_fiado": "Abono de fiado",
+    "crear_cliente": "Nuevo cliente",
+    "editar_cliente": "Cliente actualizado",
+    "crear_separado": "Separado creado",
+    "abono_separado": "Abono de separado",
+    "entregar_separado": "Separado entregado",
+    "cancelar_separado": "Separado cancelado",
+    "prorrogar_separado": "Separado prorrogado",
+    "ajuste_inventario": "Inventario ajustado",
+    "no_vendible": "Pasó a no vendible",
+    "abrir_paquete": "Paquete abierto",
+    "crear_producto": "Producto creado",
+    "editar_producto": "Producto editado",
+    "crear_variante": "Variante creada",
+    "editar_variante": "Variante editada",
+    "cambiar_precio": "Precio actualizado",
+    "corregir_costo": "Costo corregido",
+    "abrir_caja": "Caja abierta",
+    "cerrar_caja": "Caja cerrada",
+    "corregir_cierre": "Cierre corregido",
+    "registrar_gasto": "Gasto registrado",
+    "crear_compra": "Compra creada",
+    "recibir_compra": "Compra recibida",
+    "pagar_compra": "Pago a proveedor",
+    "anular_compra": "Compra anulada",
+    "crear_proveedor": "Proveedor creado",
+    "inicio_sesion": "Inicio de sesión",
+    "traslado": "Traslado entre cuentas",
+    "conciliar": "Conciliación",
+    "crear_cuenta": "Cuenta creada",
+    "aporte": "Aporte del dueño",
+    "retiro": "Retiro del dueño",
+    "prestamo_entra": "Préstamo recibido",
+    "prestamo_sale": "Préstamo entregado",
+    "autorizar_descuento": "Descuento autorizado",
+    "crear_usuario": "Usuario creado",
+    "editar_usuario": "Usuario editado",
+    "cambiar_ajustes": "Ajustes actualizados",
+    "cambiar_clave": "Clave actualizada",
+    "crear_respaldo": "Respaldo creado",
+    "descargar_respaldo": "Respaldo descargado",
+    "restaurar_respaldo": "Respaldo restaurado",
+    "descargar_reporte": "Reporte descargado",
+}
+_ACTION_ICON = {
+    "confirmar_venta": "bag",
+    "anular_venta": "bag",
+    "devolucion": "bag",
+    "crear_cliente": "userplus",
+    "editar_cliente": "userplus",
+    "ajuste_inventario": "clipboard",
+    "no_vendible": "clipboard",
+    "abrir_paquete": "package",
+    "crear_producto": "package",
+    "editar_producto": "package",
+    "crear_variante": "package",
+    "editar_variante": "package",
+    "cambiar_precio": "coins",
+    "corregir_costo": "coins",
+    "abono_fiado": "hands",
+    "confirmar_pago": "wallet",
+    "abono_separado": "bookmark",
+    "crear_separado": "bookmark",
+    "entregar_separado": "bookmark",
+    "cancelar_separado": "bookmark",
+    "prorrogar_separado": "bookmark",
+    "abrir_caja": "wallet",
+    "cerrar_caja": "wallet",
+    "corregir_cierre": "wallet",
+    "registrar_gasto": "receipt",
+    "pagar_compra": "receipt",
+    "crear_compra": "truck",
+    "recibir_compra": "truck",
+    "anular_compra": "truck",
+    "inicio_sesion": "users",
+    "traslado": "bank",
+    "conciliar": "bank",
+    "crear_cuenta": "bank",
+    "aporte": "piggy",
+    "retiro": "piggy",
+    "prestamo_entra": "piggy",
+    "prestamo_sale": "piggy",
+}
+_ACTION_TONE = {
+    "confirmar_venta": "rose",
+    "crear_cliente": "lavender",
+    "editar_cliente": "lavender",
+    "ajuste_inventario": "peach",
+    "no_vendible": "peach",
+    "abono_fiado": "mint",
+    "abono_separado": "peach",
+    "crear_separado": "peach",
+    "entregar_separado": "mint",
+    "abrir_caja": "rose",
+    "cerrar_caja": "lavender",
+    "registrar_gasto": "peach",
+    "inicio_sesion": "lavender",
+}
+
+
+def _when_label(value) -> str:
+    current = as_bogota(value)
+    if current is None:
+        return "—"
+    hour = current.hour % 12 or 12
+    period = "a. m." if current.hour < 12 else "p. m."
+    return f"{current.day} {MESES[current.month - 1]} {current.year} · {hour}:{current.minute:02d} {period}"
+
+
+def _activity_row(log: AuditLog) -> dict:
+    detail = (log.detail or "").strip()
+    short = bool(detail) and len(detail) <= 22
+    aside = detail if short else ""
+    if log.action == "confirmar_pago" and detail.lstrip("-").isdigit():
+        aside = money(int(detail))
+        short = True
+    return {
+        "title": _ACTION_TITLE.get(log.action, log.action.replace("_", " ").capitalize()),
+        "icon": _ACTION_ICON.get(log.action, "receipt"),
+        "tone": _ACTION_TONE.get(log.action, "rose"),
+        "when_label": _when_label(log.created_at),
+        "subtitle": "" if short else detail,
+        "aside": aside,
+    }
+
+
+def _sales_chart(sales, returned_total) -> dict:
+    from app.utils import as_bogota
+
+    buckets = [0] * 13
+    for sale in sales:
+        local = as_bogota(sale.created_at)
+        if local is None:
+            continue
+        amount = int(sale.total) - int(returned_total(sale))
+        hour = local.hour
+        index = 0 if hour < 8 else 12 if hour > 20 else hour - 8
+        buckets[index] += amount
+    running = 0
+    points = []
+    for value in buckets:
+        running += value
+        points.append(running)
+    width, height = 640, 210
+    left, right, top, bottom = 12, 12, 16, 28
+    inner_w = width - left - right
+    inner_h = height - top - bottom
+    peak = max(points) if points else 0
+    coords = []
+    for index, value in enumerate(points):
+        x = left + inner_w * index / 12
+        y = top + inner_h * (1 - (value / peak if peak else 0))
+        coords.append((round(x, 1), round(y, 1)))
+    line = " ".join(f"{x},{y}" for x, y in coords)
+    area = f"M {coords[0][0]},{top + inner_h} " + " ".join(f"L {x},{y}" for x, y in coords) + f" L {coords[-1][0]},{top + inner_h} Z"
+    names = ["8 a. m.", "10 a. m.", "12 p. m.", "2 p. m.", "4 p. m.", "6 p. m.", "8 p. m."]
+    labels = [
+        {"x": round(left + inner_w * (index * 2) / 12, 1), "text": text}
+        for index, text in enumerate(names)
+    ]
+    return {
+        "empty": peak <= 0,
+        "line": line,
+        "area": area,
+        "dots": [{"x": x, "y": y} for x, y in coords],
+        "labels": labels,
+        "axis_y": top + inner_h,
+    }
 
 
 @router.get("/vender")

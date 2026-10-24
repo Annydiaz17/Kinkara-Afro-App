@@ -204,6 +204,8 @@ def dashboard(db: Session, day: date | None = None) -> dict:
         "accounts": list(accounts),
         "committed": committed_advances(db),
         "due_layaways": due[:6],
+        "due_count": len(due),
+        "sales_today": list(sales_today),
         "receivables": receivables,
         "payables": payables,
         "recent": list(recent),

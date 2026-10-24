@@ -1,9 +1,10 @@
+{% from "partials/icons.html" import icon %}
 <!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#2E0F17">
+  <meta name="theme-color" content="#4A1424">
   <meta name="csrf" content="{{ csrf }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>{% block title %}KINKARA AFRO{% endblock %}</title>
@@ -12,82 +13,130 @@
   <link rel="manifest" href="/static/manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/app.css">
   <script src="/static/htmx.min.js" defer></script>
   <script src="/static/alpine.min.js" defer></script>
 </head>
-<body class="min-h-screen text-ink antialiased" x-data="{ more: false, online: navigator.onLine }" @online.window="online = true" @offline.window="online = false">
+<body class="min-h-screen text-ink antialiased" x-data="{ drawer: false, bell: false, account: false, online: navigator.onLine }" :class="drawer ? 'drawer-open' : ''" @online.window="online = true" @offline.window="online = false" @keydown.escape.window="drawer = false; bell = false; account = false">
   <div x-show="!online" x-cloak class="no-print fixed inset-x-0 top-0 z-50 bg-clay-700 px-4 py-2 text-center text-sm font-semibold text-white">
     Sin conexión. No se guardará ninguna operación hasta que vuelva la red.
   </div>
   {% if user %}
-  <aside class="app-menu no-print fixed inset-y-0 left-0 z-30 hidden w-60 flex-col md:flex">
-    <a href="/" class="block px-5 pb-5 pt-6 no-underline">
-      <div class="mark-kinkara text-3xl">Kinkara</div>
-      <div class="mark-afro mt-2 text-[11px]">AFRO</div>
+  <div class="drawer-backdrop no-print" x-show="drawer" x-cloak @click="drawer = false"></div>
+  <aside class="app-side no-print" :class="drawer ? 'is-open' : ''">
+    <a href="/" class="brand">
+      <div class="brand-name">Kinkara</div>
+      <div class="brand-afro">AFRO</div>
     </a>
-    <nav class="flex-1 space-y-1 overflow-y-auto px-3 pb-4">
-      {% for href, label, who in nav %}
-      <a href="{{ href }}" class="nav-link {% if request.url.path == href or (href != '/' and request.url.path.startswith(href)) %}active{% endif %}">{{ label }}</a>
+    <button type="button" class="side-close" @click="drawer = false" aria-label="Cerrar menú">{{ icon('x', 18) }}</button>
+    <nav class="side-nav" aria-label="Secciones">
+      {% set menu = [
+        ("/", "Inicio", "house", false),
+        ("/vender", "Vender", "bag", false),
+        ("/caja", "Caja", "wallet", false),
+        ("/separados", "Separados", "bookmark", false),
+        ("/fiados", "Fiados", "hands", false),
+        ("/clientes", "Clientes", "users", false),
+        ("/productos", "Productos", "package", false),
+        ("/inventario", "Inventario", "clipboard", false),
+        ("/compras", "Compras", "truck", true),
+        ("/gastos", "Gastos", "receipt", true),
+        ("/cuentas", "Cuentas", "bank", false),
+        ("/ganancias", "Ganancias", "chart", true),
+        ("/reportes", "Reportes", "bars", true)
+      ] %}
+      {% for href, label, icon_name, admin_only in menu %}
+      {% if not admin_only or user.is_admin %}
+      {% set on = request.url.path == href or (href != '/' and request.url.path.startswith(href)) %}
+      <a href="{{ href }}" class="side-link {% if on %}is-active{% endif %}" {% if on %}aria-current="page"{% endif %}>{{ icon(icon_name, 18) }}<span>{{ label }}</span></a>
+      {% endif %}
       {% endfor %}
     </nav>
-    <div class="border-t border-white/15 px-4 py-4 text-sm">
-      <div class="font-medium text-[#F3E3DE]">{{ user.full_name }}</div>
-      <div class="text-[#F3E3DE]">{{ user.role_label }}</div>
+    {% if user.is_admin %}
+    <div class="side-foot">
+      {% set admin_on = request.url.path in ['/ajustes', '/usuarios', '/auditoria', '/respaldo'] %}
+      <details class="side-admin" {% if admin_on %}open{% endif %}>
+        <summary>{{ icon('settings', 18) }}<span>Administración</span></summary>
+        <div class="side-sub">
+          <a href="/ajustes" class="{% if request.url.path.startswith('/ajustes') %}is-active{% endif %}">Ajustes</a>
+          <a href="/usuarios" class="{% if request.url.path.startswith('/usuarios') %}is-active{% endif %}">Usuarios</a>
+          <a href="/auditoria" class="{% if request.url.path.startswith('/auditoria') %}is-active{% endif %}">Auditoría</a>
+          <a href="/respaldo" class="{% if request.url.path.startswith('/respaldo') %}is-active{% endif %}">Respaldo</a>
+        </div>
+      </details>
     </div>
-  </aside>
-  {% endif %}
-  <div class="shell {% if user %}md:pl-60{% endif %}">
-    {% if user %}
-    <header class="no-print sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-cream-200 bg-cream-100 px-4 py-3">
-      <a href="/" class="md:hidden no-underline">
-        <div class="mark-kinkara text-2xl text-ink">Kinkara</div>
-        <div class="mark-afro-light mt-1 text-[10px]">AFRO</div>
-      </a>
-      <div class="ml-auto flex items-center gap-2">
-        <a href="/caja" class="chip {% if caja %}chip-open{% else %}chip-closed{% endif %}">
-          {% if caja %}Caja abierta{% else %}Caja cerrada{% endif %}
-        </a>
-        <form method="post" action="/logout">
-          <input type="hidden" name="_csrf" value="{{ csrf }}">
-          <button class="btn-ghost !px-3 !py-1.5 text-xs">Salir</button>
-        </form>
-      </div>
-    </header>
     {% endif %}
-    <main class="mx-auto w-full max-w-6xl px-4 py-5 {% if user %}pb-24 md:pb-8{% endif %}">
+    <svg class="side-leaves" viewBox="0 0 224 180" aria-hidden="true">
+      <g fill="none" stroke="#F3E3DE" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M28 168c18-28 22-58 8-86 22 10 36 32 40 58-16 6-32 16-48 28z"/>
+        <path d="M36 150c8-16 8-30 2-44"/>
+        <path d="M78 164c22-18 48-24 78-20-8 14-22 24-40 30-14-2-26-6-38-10z"/>
+        <path d="M96 162c10-8 22-12 36-12"/>
+        <path d="M150 172c16-22 18-46 6-70 18 12 28 30 30 52-12 6-24 12-36 18z"/>
+        <path d="M158 158c6-12 6-24 2-36"/>
+      </g>
+    </svg>
+  </aside>
+  <header class="topbar no-print">
+    <button type="button" class="icon-btn hamburger" @click="drawer = true" aria-label="Abrir menú">{{ icon('menu', 20) }}</button>
+    <form class="top-search" action="/inventario" method="get" role="search">
+      <span class="search-glass" aria-hidden="true">{{ icon('search', 18) }}</span>
+      <input id="global-search" name="q" type="search" placeholder="Buscar producto, cliente o referencia…" autocomplete="off" aria-label="Buscar producto, cliente o referencia">
+      <button type="button" class="search-key" onclick="document.getElementById('global-search').focus()" aria-label="Enfocar el buscador">/</button>
+    </form>
+    <div class="top-tools">
+      <div class="top-pop" @click.outside="bell = false">
+        <button type="button" class="icon-btn bell-btn" @click="bell = !bell; account = false" :aria-expanded="bell.toString()" aria-label="Alertas{% if alert_count %}: {{ alert_count }}{% endif %}">
+          {{ icon('bell', 20) }}
+          {% if alert_count %}<span class="bell-count">{{ alert_count }}</span>{% endif %}
+        </button>
+        <div class="pop-card" x-show="bell" x-cloak>
+          <p class="pop-title">Alertas</p>
+          {% if alert_count %}
+          <a href="/inventario">Productos agotados <strong class="num">{{ bell_agotados }}</strong></a>
+          <a href="/inventario">Stock bajo <strong class="num">{{ bell_bajos }}</strong></a>
+          <a href="/separados">Separados por vencer <strong class="num">{{ bell_due }}</strong></a>
+          {% else %}
+          <p class="pop-empty">No hay alertas ahora.</p>
+          {% endif %}
+        </div>
+      </div>
+      <div class="top-pop" @click.outside="account = false">
+        <button type="button" class="who" @click="account = !account; bell = false" :aria-expanded="account.toString()">
+          <span class="avatar" aria-hidden="true">{{ (user.full_name or user.username)[:1]|upper }}</span>
+          <span class="who-text">
+            <span class="who-name">{{ user.full_name or user.username }}</span>
+            <span class="who-role">{{ user.role_label }}</span>
+          </span>
+          {{ icon('chevron', 16) }}
+        </button>
+        <div class="pop-card pop-account" x-show="account" x-cloak>
+          <p class="pop-clock">{{ clock_date }}<br>{{ clock_time }}</p>
+          {% if user.is_admin %}<a href="/ajustes">Ajustes</a>{% endif %}
+          <form method="post" action="/logout">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <button type="submit">Salir</button>
+          </form>
+        </div>
+      </div>
+      <div class="clock-rule" aria-hidden="true"></div>
+      <div class="clock">
+        <div class="clock-date" data-clock-date>{{ clock_date }}</div>
+        <div class="clock-time" data-clock-time>{{ clock_time }}</div>
+      </div>
+    </div>
+  </header>
+  {% endif %}
+  <div class="shell {% if user %}with-nav{% endif %}">
+    <main class="app-main">
       {% for flash in flashes %}
       <div class="mb-4 rounded-xl px-4 py-3 text-sm {% if flash.kind == 'error' %}bg-clay-50 text-clay-700{% elif flash.kind == 'info' %}bg-gold-200/70 text-cocoa-900{% else %}bg-moss-50 text-moss-700{% endif %}">{{ flash.message }}</div>
       {% endfor %}
       {% block content %}{% endblock %}
     </main>
   </div>
-  {% if user %}
-  {% block bottom %}
-  <nav class="tabbar no-print fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-cream-300 bg-white pb-[env(safe-area-inset-bottom)] md:hidden">
-    <a href="/" class="px-1 text-center text-[11px] font-semibold {% if request.url.path == '/' %}text-gold-700{% else %}text-cocoa-800{% endif %}">Inicio</a>
-    <a href="/vender" class="px-1 text-center text-[11px] font-semibold {% if request.url.path.startswith('/vender') %}text-gold-700{% else %}text-cocoa-800{% endif %}">Vender</a>
-    <a href="/caja" class="px-1 text-center text-[11px] font-semibold {% if request.url.path.startswith('/caja') %}text-gold-700{% else %}text-cocoa-800{% endif %}">Caja</a>
-    <a href="/separados" class="px-1 text-center text-[11px] font-semibold {% if request.url.path.startswith('/separados') %}text-gold-700{% else %}text-cocoa-800{% endif %}">Separados</a>
-    <button type="button" class="px-1 text-center text-[11px] font-semibold text-cocoa-800" @click="more = true">Más</button>
-  </nav>
-  <div x-show="more" x-cloak class="no-print fixed inset-0 z-40 md:hidden" @keydown.escape.window="more = false">
-    <div class="absolute inset-0 bg-cocoa-950/50" @click="more = false"></div>
-    <div class="absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-3xl bg-cream-50 p-4 pb-8">
-      <div class="mb-3 flex items-center justify-between">
-        <div class="font-display text-2xl">Más</div>
-        <button class="btn-ghost !py-1.5" @click="more = false">Cerrar</button>
-      </div>
-      <div class="grid grid-cols-2 gap-2">
-        {% for href, label, who in nav %}
-        <a href="{{ href }}" class="more-link">{{ label }}</a>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-  {% endblock %}
-  {% endif %}
+  {% block bottom %}{% endblock %}
   <script>
     document.addEventListener("submit", (event) => {
       if (!navigator.onLine) {
@@ -99,6 +148,39 @@
       const token = document.querySelector("meta[name=csrf]");
       if (token) event.detail.headers["X-CSRF-Token"] = token.content;
     });
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+      const tag = (event.target.tagName || "").toLowerCase();
+      if (tag === "input" || tag === "textarea" || tag === "select" || event.target.isContentEditable) return;
+      const field = document.getElementById("global-search");
+      if (!field) return;
+      event.preventDefault();
+      field.focus();
+    });
+    function kinkaraClock() {
+      const zone = "America/Bogota";
+      const now = new Date();
+      const dateParts = new Intl.DateTimeFormat("es-CO", {
+        timeZone: zone, weekday: "long", day: "numeric", month: "long", year: "numeric"
+      }).formatToParts(now);
+      const pick = (parts, type) => (parts.find((part) => part.type === type) || {}).value || "";
+      const cap = (value) => value ? value.charAt(0).toLocaleUpperCase("es-CO") + value.slice(1) : value;
+      const dateEl = document.querySelector("[data-clock-date]");
+      const timeEl = document.querySelector("[data-clock-time]");
+      if (dateEl) {
+        dateEl.textContent = cap(pick(dateParts, "weekday")) + ", " + pick(dateParts, "day") + " de " + pick(dateParts, "month") + " de " + pick(dateParts, "year");
+      }
+      if (!timeEl) return;
+      const timeParts = new Intl.DateTimeFormat("es-CO", {
+        timeZone: zone, hour: "numeric", minute: "2-digit", hour12: true
+      }).formatToParts(now);
+      let period = pick(timeParts, "dayPeriod").replace(/\s+/g, "").toLowerCase();
+      if (period.startsWith("a")) period = "a. m.";
+      else if (period.startsWith("p")) period = "p. m.";
+      timeEl.textContent = pick(timeParts, "hour") + ":" + pick(timeParts, "minute") + (period ? " " + period : "");
+    }
+    kinkaraClock();
+    setInterval(kinkaraClock, 30000);
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/static/sw.js").catch(() => {});
     }

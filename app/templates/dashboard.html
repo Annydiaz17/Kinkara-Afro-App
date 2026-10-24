@@ -1,124 +1,257 @@
 {% extends "base.html" %}
-{% block title %}Hoy · KINKARA AFRO{% endblock %}
+{% from "partials/icons.html" import icon %}
+{% block title %}Inicio · KINKARA AFRO{% endblock %}
 {% block content %}
-<div class="mb-5 flex flex-wrap items-end justify-between gap-3">
-  <div>
-    <p class="text-xs font-semibold uppercase tracking-[0.14em] text-cocoa-700">{{ day|largo }}</p>
-    <h1 class="font-display text-4xl">Hoy en la tienda</h1>
-  </div>
-  {% if not caja %}
-  <a href="/caja" class="btn-gold">Abrir la caja</a>
-  {% else %}
-  <a href="/vender" class="btn-primary">Registrar una venta</a>
-  {% endif %}
-</div>
-<div class="grid gap-3 md:grid-cols-3">
-  <a href="/ventas" class="card p-4">
-    <div class="text-sm text-cocoa-700">Ventas entregadas</div>
-    <div class="num mt-1 font-display text-3xl">{{ delivered_total|money }}</div>
-    <div class="muted">{{ delivered_count }} comprobante{% if delivered_count != 1 %}s{% endif %}</div>
-  </a>
-  <a href="/separados" class="card p-4">
-    <div class="text-sm text-cocoa-700">Abonos de separados</div>
-    <div class="num mt-1 font-display text-3xl">{{ layaway_today|money }}</div>
-    <div class="muted">Anticipo. Entra a la caja y no es venta.</div>
-  </a>
-  <a href="/fiados" class="card p-4">
-    <div class="text-sm text-cocoa-700">Abonos de fiados</div>
-    <div class="num mt-1 font-display text-3xl">{{ credit_today|money }}</div>
-    <div class="muted">Cobro de una deuda, no una venta nueva.</div>
-  </a>
-</div>
-<p class="mt-3 text-sm text-cocoa-700">La ganancia sale solo de lo que ya se entregó. Sumar estos tres números repite el error de anotar como utilidad todo el efectivo del día.</p>
-{% if user.is_admin %}
-<div class="card mt-4 flex flex-wrap items-center justify-between gap-3 p-4">
-  <div>
-    <div class="text-sm text-cocoa-700">Ganancia estimada de hoy</div>
-    <div class="num font-display text-3xl">{{ report.net|money }}</div>
-    <div class="muted">Ventas {{ report.net_sales|money }} − costo {{ report.cogs|money }} − gastos {{ (report.expenses + report.payroll)|money }}</div>
-  </div>
-  <a href="/ganancias" class="btn-ghost">Ver el periodo</a>
-</div>
-{% endif %}
-<section class="mt-6">
-  <h2 class="font-display text-2xl">Dónde está el dinero</h2>
-  <div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-    {% for account in accounts %}
-    <a href="/cuentas/{{ account.id }}" class="card p-4">
-      <div class="text-sm text-cocoa-700">{{ account.name }}</div>
-      <div class="num font-display text-2xl">{{ account.balance|money }}</div>
-      {% if account.code == 'ahorro' %}
-      <div class="mt-2 text-xs text-cocoa-700">Anticipos de separados sin entregar: <span class="num font-semibold">{{ committed|money }}</span>. Ese dinero está en las cuentas, pero sigue siendo de las clientas.</div>
+<div class="home">
+  <div class="home-main">
+    <section class="banner" aria-label="Bienvenida">
+      <svg class="banner-art" viewBox="0 0 900 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <path d="M0 20c80 40 120 10 180 30s90 70 40 110-150 10-220-20S-40 0 0 20z" fill="#E7B7BE"/>
+        <path d="M40 150c70-20 90-70 150-60 40 8 50 48 20 70-50 16-120 10-170-10z" fill="#F0C8CE"/>
+        <path d="M620 0c80 30 140 20 200 50 30 70-20 120-80 130-70-30-90-90-120-180z" fill="#E7B7BE"/>
+        <g fill="none" stroke="#6E1B2E" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.3">
+          <path d="M18 36c16 10 22 28 14 46-12-6-22-20-24-36 4-4 8-8 10-10z"/>
+          <path d="M28 48c6 8 6 16 2 24"/>
+          <path d="M8 78c20-4 36 6 46 22-16 2-32-4-44-16-2-2-2-4-2-6z"/>
+          <path d="M70 24c14 16 12 36 2 52"/>
+          <path d="M78 40c-10 4-16 14-16 26 12 0 22-6 28-16 0-4-2-8-12-10z"/>
+          <path d="M860 150c-18-8-24-26-14-44 14 4 24 16 26 34-4 4-8 8-12 10z"/>
+          <path d="M848 140c-6-8-6-16-2-24"/>
+          <path d="M830 168c14-18 10-38-2-52"/>
+        </g>
+      </svg>
+      {% if banner %}
+      <img class="banner-photo" src="/static/img/banner.jpg" alt="">
+      <div class="banner-fade" aria-hidden="true"></div>
       {% endif %}
-    </a>
-    {% endfor %}
+      <div class="banner-copy">
+        <p class="banner-kicker">Bienvenida a</p>
+        <h1 class="banner-title">Kinkara Afro</h1>
+        <p class="banner-tag">Belleza · Raíces · Confianza</p>
+      </div>
+    </section>
+
+    <section class="stats {% if not user.is_admin %}cols-3{% endif %}" aria-label="Indicadores del día">
+      <a class="stat stat-rose" href="/ventas">
+        <span class="stat-top">
+          <span class="well">{{ icon('bag', 20) }}</span>
+          <span class="trend" aria-hidden="true">{{ icon('arrow', 14) }}</span>
+        </span>
+        <span class="stat-label">Ventas del día</span>
+        <span class="stat-value num">{{ delivered_total|money }}</span>
+        <span class="stat-note">{{ delivered_count }} comprobante{% if delivered_count != 1 %}s{% endif %}</span>
+      </a>
+      <a class="stat stat-peach" href="/separados">
+        <span class="stat-top">
+          <span class="well">{{ icon('bookmark', 20) }}</span>
+          <span class="trend" aria-hidden="true">{{ icon('arrow', 14) }}</span>
+        </span>
+        <span class="stat-label">Abonos de separados</span>
+        <span class="stat-value num">{{ layaway_today|money }}</span>
+        <span class="stat-note">Anticipo. No es venta.</span>
+      </a>
+      <a class="stat stat-mint" href="/fiados">
+        <span class="stat-top">
+          <span class="well">{{ icon('hands', 20) }}</span>
+          <span class="trend" aria-hidden="true">{{ icon('arrow', 14) }}</span>
+        </span>
+        <span class="stat-label">Abonos de fiados</span>
+        <span class="stat-value num">{{ credit_today|money }}</span>
+        <span class="stat-note">Cobro de una deuda.</span>
+      </a>
+      {% if user.is_admin %}
+      <a class="stat stat-lavender" href="/ganancias">
+        <span class="stat-top">
+          <span class="well">{{ icon('chart', 20) }}</span>
+          <span class="trend" aria-hidden="true">{{ icon('arrow', 14) }}</span>
+        </span>
+        <span class="stat-label">Ganancia estimada de hoy</span>
+        <span class="stat-value num">{{ report.net|money }}</span>
+        <span class="stat-note">Ventas {{ report.net_sales|money }} – costo {{ report.cogs|money }} – gastos {{ (report.expenses + report.payroll)|money }}</span>
+      </a>
+      {% endif %}
+    </section>
+
+    <section class="card panel">
+      <div class="panel-head">
+        <h2>{{ icon('chart', 18) }}<span>Resumen de ventas</span></h2>
+        <form class="day-select" method="get" action="/">
+          <span>{% if day == today %}Hoy, {% endif %}{{ day|fecha }}</span>
+          {{ icon('chevron', 16) }}
+          <input type="date" name="dia" value="{{ day.isoformat() }}" aria-label="Día del resumen" onchange="this.form.submit()">
+        </form>
+      </div>
+      <div class="chart-body">
+        <div class="chart-plot">
+          <svg viewBox="0 0 640 210" role="img" aria-label="{% if chart.empty %}Aún no hay ventas hoy{% else %}Ventas acumuladas por hora{% endif %}">
+            <defs>
+              <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#6E1B2E" stop-opacity="0.15"/>
+                <stop offset="100%" stop-color="#6E1B2E" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <line x1="12" y1="{{ chart.axis_y }}" x2="628" y2="{{ chart.axis_y }}" stroke="#EADCD6" stroke-width="1"/>
+            {% if not chart.empty %}
+            <path d="{{ chart.area }}" fill="url(#chartFill)"/>
+            <polyline points="{{ chart.line }}" fill="none" stroke="#6E1B2E" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+            {% for dot in chart.dots %}
+            <circle cx="{{ dot.x }}" cy="{{ dot.y }}" r="3.5" fill="#6E1B2E"/>
+            {% endfor %}
+            {% else %}
+            <text x="320" y="100" text-anchor="middle" fill="#7A6A66" font-family="Figtree, sans-serif" font-size="14">Aún no hay ventas hoy</text>
+            {% endif %}
+            {% for label in chart.labels %}
+            <text class="chart-label" x="{{ label.x }}" y="200" text-anchor="{% if loop.first %}start{% elif loop.last %}end{% else %}middle{% endif %}">{{ label.text }}</text>
+            {% endfor %}
+          </svg>
+        </div>
+        <ul class="chart-side">
+          <li>
+            <span class="well well-rose">{{ icon('bag', 18) }}</span>
+            <span class="chart-copy">
+              <span class="chart-name">Total ventas</span>
+              <span class="chart-amount num">{{ delivered_total|money }}</span>
+            </span>
+          </li>
+          {% if user.is_admin %}
+          <li>
+            <span class="well well-rose">{{ icon('coins', 18) }}</span>
+            <span class="chart-copy">
+              <span class="chart-name">Total de costos</span>
+              <span class="chart-amount num">{{ report.cogs|money }}</span>
+            </span>
+          </li>
+          <li>
+            <span class="well well-rose">{{ icon('chart', 18) }}</span>
+            <span class="chart-copy">
+              <span class="chart-name">Utilidad bruta estimada</span>
+              <span class="chart-amount num">{{ report.gross|money }}</span>
+            </span>
+          </li>
+          <li>
+            <span class="well well-rose">{{ icon('receipt', 18) }}</span>
+            <span class="chart-copy">
+              <span class="chart-name">Gastos del día</span>
+              <span class="chart-amount num">{{ (report.expenses + report.payroll)|money }}</span>
+            </span>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </section>
+
+    <section class="card panel">
+      <h2>{{ icon('bag', 18) }}<span>Accesos rápidos</span></h2>
+      <div class="quick">
+        <a href="/vender"><span class="well well-rose">{{ icon('cart', 18) }}</span><span>Nueva venta</span></a>
+        {% if user.is_admin %}
+        <a href="/gastos"><span class="well well-rose">{{ icon('receipt', 18) }}</span><span>Registrar egreso</span></a>
+        <a href="/productos/nuevo"><span class="well well-rose">{{ icon('package', 18) }}</span><span>Nuevo producto</span></a>
+        {% endif %}
+        <a href="/clientes"><span class="well well-rose">{{ icon('userplus', 18) }}</span><span>Nuevo cliente</span></a>
+        {% if user.is_admin %}
+        <a href="/reportes"><span class="well well-rose">{{ icon('bars', 18) }}</span><span>Ver reportes</span></a>
+        {% endif %}
+      </div>
+    </section>
+
+    <div class="slogan">
+      <span>Tu cabello, tu poder</span>
+      <svg viewBox="0 0 36 36" aria-hidden="true">
+        <path d="M8 28c8-12 10-20 6-26 8 2 14 10 16 20-6 2-14 4-22 6z" fill="none" stroke="#F3E3DE" stroke-width="1.4" stroke-linejoin="round"/>
+        <path d="M12 24c3-6 4-10 2-14" fill="none" stroke="#F3E3DE" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+    </div>
   </div>
-</section>
-<div class="mt-6 grid gap-4 lg:grid-cols-2">
-  <section class="card p-4">
-    <h2 class="font-display text-2xl">Para reponer</h2>
-    {% if alerts %}
-    <ul class="mt-3 divide-y divide-cream-200">
-      {% for item in alerts %}
-      <li class="flex items-center justify-between gap-3 py-2">
-        <div>
-          <div class="font-medium">{{ item.variant.product.name }}</div>
-          <div class="text-xs text-cocoa-700">{{ item.variant.short }} · {{ item.variant.sku }}</div>
+
+  <aside class="home-side">
+    <div class="caja-launch">
+      <a href="/caja" class="btn-caja">{{ icon('cart', 18) }}<span>{% if caja %}Cerrar la caja{% else %}Abrir la caja{% endif %}</span></a>
+    </div>
+
+    <section class="card panel">
+      <div class="panel-head">
+        <h2>{{ icon('clipboard', 18) }}<span>Estado del inventario</span></h2>
+        <a class="panel-more" href="/inventario">Ver todo →</a>
+      </div>
+      <div class="mini-grid">
+        <div class="mini mini-rose">
+          <span class="well">{{ icon('alert', 18) }}</span>
+          <span class="mini-label">Productos agotados</span>
+          <span class="mini-value num is-alert">{{ agotados }}</span>
         </div>
-        {% if item.state.agotado %}<span class="badge-bad">Agotado{% if item.state.reserved %} · {{ item.state.reserved }} reservada{% endif %}</span>{% else %}<span class="badge-warn">Bajo · {{ item.state.available }}</span>{% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <p class="mt-3 text-sm text-cocoa-700">Nada está bajo el mínimo.</p>
-    {% endif %}
-    <a href="/inventario" class="mt-3 inline-block text-sm font-semibold text-gold-700">Ver inventario</a>
-  </section>
-  <section class="card p-4">
-    <h2 class="font-display text-2xl">Separados por vencer</h2>
-    {% if due_layaways %}
-    <ul class="mt-3 divide-y divide-cream-200">
-      {% for item in due_layaways %}
-      <li class="flex items-center justify-between gap-3 py-2">
-        <div>
-          <div class="font-medium">{{ item.layaway.customer.name }}</div>
-          <div class="text-xs text-cocoa-700">{{ item.layaway.number }} · saldo {{ item.layaway.balance|money }} · {{ item.days }} días</div>
+        <div class="mini mini-peach">
+          <span class="well">{{ icon('down', 18) }}</span>
+          <span class="mini-label">Stock bajo</span>
+          <span class="mini-value num">{{ bajos }}</span>
         </div>
-        <span class="{% if item.state == 'vencido' %}badge-bad{% else %}badge-warn{% endif %}">{% if item.state == 'vencido' %}Vencido{% else %}Por vencer{% endif %}</span>
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <p class="mt-3 text-sm text-cocoa-700">Ningún separado vence en los próximos días.</p>
-    {% endif %}
-  </section>
-</div>
-{% if user.is_admin %}
-<div class="mt-4 grid gap-3 sm:grid-cols-2">
-  <a href="/fiados" class="card p-4"><div class="text-sm text-cocoa-700">Cartera de clientas</div><div class="num font-display text-2xl">{{ receivables|money }}</div></a>
-  <a href="/compras" class="card p-4"><div class="text-sm text-cocoa-700">Por pagar a proveedores</div><div class="num font-display text-2xl">{{ payables|money }}</div></a>
-</div>
-{% endif %}
-<section class="mt-6">
-  <h2 class="font-display text-2xl">Últimos comprobantes</h2>
-  {% if recent %}
-  <div class="mt-3 overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead class="text-left text-cocoa-700"><tr><th class="py-2">Número</th><th>Hora</th><th>Total</th><th>Estado</th></tr></thead>
-      <tbody>
-        {% for sale in recent %}
-        <tr class="border-t border-cream-200">
-          <td class="py-2"><a class="font-semibold" href="/ventas/{{ sale.id }}">{{ sale.number }}</a></td>
-          <td>{{ sale.created_at|dt }}</td>
-          <td class="num">{{ sale.total|money }}</td>
-          <td>{{ sale.status }}</td>
-        </tr>
+        <div class="mini mini-lavender">
+          <span class="well">{{ icon('layers', 18) }}</span>
+          <span class="mini-label">Total de referencias</span>
+          <span class="mini-value num">{{ referencias }}</span>
+        </div>
+        <div class="mini mini-mint">
+          <span class="well">{{ icon('coins', 18) }}</span>
+          <span class="mini-label">Inventario valorizado al costo</span>
+          <span class="mini-value num">{{ inventario_valor|money }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card panel">
+      <div class="panel-head">
+        <h2>{{ icon('wallet', 18) }}<span>Dónde está el dinero</span></h2>
+        <a class="panel-more" href="/cuentas">Ver movimientos →</a>
+      </div>
+      <div class="money-grid">
+        {% for account in accounts if account.code in ['caja', 'ahorro'] %}
+        <a class="money-hero {% if account.code == 'ahorro' %}is-ahorro{% else %}is-caja{% endif %}" href="/cuentas/{{ account.id }}">
+          <span class="bubble">{% if account.code == 'ahorro' %}{{ icon('piggy', 18) }}{% else %}{{ icon('wallet', 18) }}{% endif %}</span>
+          <span class="money-name">{{ account.name }}</span>
+          <span class="money-value num">{{ account.balance|money }}</span>
+          {% if account.code == 'ahorro' %}
+          <span class="money-note">Anticipos de separados sin entregar: {{ committed|money }}. Ese dinero está en las cuentas, pero sigue siendo de las clientas.</span>
+          {% endif %}
+        </a>
         {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-  <p class="mt-3 text-sm text-cocoa-700">Todavía no hay ventas. Cuando confirmes la primera, aparece aquí. Los separados se ven en su propia lista.</p>
-  {% endif %}
-</section>
+        {% for account in accounts if account.code not in ['caja', 'ahorro'] %}
+        <a class="money-mini" href="/cuentas/{{ account.id }}">
+          <span class="bubble bubble-{{ account.kind }}">{% if account.kind == 'billetera' %}{{ icon('phone', 16) }}{% elif account.kind == 'banco' %}{{ icon('building', 16) }}{% elif account.kind == 'datafono' %}{{ icon('card', 16) }}{% else %}{{ icon('wallet', 16) }}{% endif %}</span>
+          <span>
+            <span class="money-name">{{ account.name }}</span>
+            <span class="money-value num">{{ account.balance|money }}</span>
+          </span>
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="card panel">
+      <div class="panel-head">
+        <h2>{{ icon('receipt', 18) }}<span>Acciones recientes</span></h2>
+        {% if user.is_admin %}
+        <a class="panel-more" href="/auditoria">Ver todas →</a>
+        {% else %}
+        <a class="panel-more" href="/ventas">Ver todas →</a>
+        {% endif %}
+      </div>
+      {% if activity %}
+      <ul class="activity">
+        {% for row in activity %}
+        <li>
+          <span class="bubble tone-{{ row.tone }}">{{ icon(row.icon, 18) }}</span>
+          <span class="activity-copy">
+            <span class="activity-title">{{ row.title }}</span>
+            <span class="activity-detail">{% if row.subtitle %}{{ row.subtitle }} · {% endif %}{{ row.when_label }}</span>
+          </span>
+          {% if row.aside %}<span class="activity-aside num">{{ row.aside }}</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="empty-note">Todavía no hay movimientos registrados.</p>
+      {% endif %}
+    </section>
+  </aside>
+</div>
 {% endblock %}
