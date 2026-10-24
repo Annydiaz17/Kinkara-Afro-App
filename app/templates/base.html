@@ -8,8 +8,8 @@
   <meta name="csrf" content="{{ csrf }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>{% block title %}KINKARA AFRO{% endblock %}</title>
-  <link rel="icon" href="/static/favicon.png">
-  <link rel="apple-touch-icon" href="/static/icon-192.png">
+  <link rel="icon" href="/static/favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
   <link rel="manifest" href="/static/manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,8 +26,7 @@
   <div class="drawer-backdrop no-print" x-show="drawer" x-cloak @click="drawer = false"></div>
   <aside class="app-side no-print" :class="drawer ? 'is-open' : ''">
     <a href="/" class="brand">
-      <div class="brand-name">Kinkara</div>
-      <div class="brand-afro">AFRO</div>
+      <img src="/static/img/kinkara-logo-flor-crema.svg" alt="Kinkara Afro" width="168">
     </a>
     <button type="button" class="side-close" @click="drawer = false" aria-label="Cerrar menú">{{ icon('x', 18) }}</button>
     <nav class="side-nav" aria-label="Secciones">

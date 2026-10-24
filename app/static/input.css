@@ -213,7 +213,8 @@ tbody tr:hover { background: var(--rosa); }
 }
 
 @media print {
-  .no-print, aside, header, nav, .tabbar { display: none !important; }
+  .no-print, aside, header.topbar, nav, .tabbar { display: none !important; }
+  .sheet header { display: block !important; }
   .shell { padding-left: 0 !important; }
   body { background: #fff !important; color: #000 !important; }
   main { max-width: none !important; padding: 0 !important; }
@@ -261,24 +262,19 @@ tbody tr:hover { background: var(--rosa); }
 }
 .app-side.is-open { transform: none; }
 .brand {
-  display: block;
-  padding: 28px 16px 18px;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  padding: 22px 16px 14px;
   text-decoration: none;
 }
-.brand-name {
-  font-family: var(--font-display);
-  font-size: 34px;
-  line-height: 1;
-  color: #FBF7F4;
+.brand img {
+  display: block;
+  width: 168px;
+  max-width: 168px;
+  height: auto;
 }
-.brand-afro {
-  margin-top: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: #D9B98A;
+@media (max-width: 1023px) {
+  .brand { padding-top: 52px; }
 }
 .side-close {
   position: absolute;
@@ -677,22 +673,47 @@ tbody tr:hover { background: var(--rosa); }
 .quick a:nth-child(4) { grid-column: 2 / span 2; }
 .quick a:nth-child(5) { grid-column: 4 / span 2; }
 .slogan {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 12px;
   min-height: 48px;
   border-radius: 14px;
   background: #4A1424;
-  padding: 0 48px;
+  padding: 0 16px;
 }
-.slogan span {
+.slogan-flor {
+  display: block;
+  width: calc(28px * 120 / 108);
+  height: 28px;
+  flex: none;
+}
+.slogan-rule {
+  width: 1px;
+  height: 22px;
+  flex: none;
+  background: rgba(243, 227, 222, 0.55);
+}
+.slogan span:last-child {
   font-family: var(--font-display);
   font-size: 18px;
   font-style: italic;
   color: #F3E3DE;
 }
-.slogan svg { position: absolute; right: 16px; width: 28px; height: 28px; }
+.login-logo {
+  display: block;
+  width: 200px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+.sheet-logo {
+  display: block;
+  width: 200px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto 0.5rem;
+}
 .caja-launch { display: flex; justify-content: flex-end; }
 .btn-caja {
   display: inline-flex;
@@ -788,6 +809,7 @@ main a.panel-more:hover { color: #5A1525; }
   .stats { grid-template-columns: 1fr 1fr; }
 }
 @media (min-width: 640px) {
+  .login-logo { width: 260px; }
   .banner { height: 180px; }
   .banner-photo, .banner-fade { display: block; }
   .banner-copy { max-width: 62%; padding-left: 28px; }

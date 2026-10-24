@@ -1,4 +1,4 @@
-const CACHE = "kinkara-estatico-4";
+const CACHE = "kinkara-estatico-5";
 const ASSETS = ["/static/app.css", "/static/htmx.min.js", "/static/alpine.min.js", "/static/icon-192.png", "/sin-conexion"];
 
 self.addEventListener("install", (event) => {

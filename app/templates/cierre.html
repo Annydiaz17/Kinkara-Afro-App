@@ -8,8 +8,7 @@
 </div>
 <article class="sheet card mx-auto max-w-xl p-6">
   <header class="border-b border-cocoa-900 pb-3 text-center">
-    <div class="mark-kinkara text-3xl">Kinkara</div>
-    <div class="mark-afro-light mt-2 text-[11px]">AFRO</div>
+    <img class="sheet-logo" src="/static/img/kinkara-logo-flor-tinta.svg" alt="Kinkara Afro" width="200">
     <h1 class="mt-3 text-xl">Cierre de caja</h1>
     <p class="mt-2 text-sm">{{ session.number }} · {{ (session.closed_at or session.opened_at)|dt }}</p>
     <p class="text-sm">Abrió {{ session.opened_by.full_name }}{% if session.closed_by %} · cerró {{ session.closed_by.full_name }}{% endif %}</p>
