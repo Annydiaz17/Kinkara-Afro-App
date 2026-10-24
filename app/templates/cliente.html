@@ -2,7 +2,7 @@
 {% block title %}{{ customer.name }}{% endblock %}
 {% block content %}
 <a href="/clientes" class="text-sm font-semibold text-gold-700">Clientas</a>
-<h1 class="font-display text-4xl">{{ customer.name }}</h1>
+<h1>{{ customer.name }}</h1>
 <p class="text-sm text-cocoa-700">{{ customer.phone }} {% if customer.doc_id %}· {{ customer.doc_id }}{% endif %} {% if customer.consent %}<span class="badge-ok">Autorizó sus datos {{ customer.consent_at|fecha }}</span>{% endif %}</p>
 <form method="post" action="/clientes/{{ customer.id }}" class="card mt-4 grid gap-2 p-4 md:grid-cols-2">
   <input type="hidden" name="_csrf" value="{{ csrf }}">
@@ -16,11 +16,11 @@
 </form>
 <div class="mt-6 grid gap-4 md:grid-cols-2">
   <section>
-    <h2 class="font-display text-2xl">Compras y fiados</h2>
+    <h2>Compras y fiados</h2>
     <ul class="mt-2 text-sm">{% for sale in sales %}<li class="border-t border-cream-200 py-2"><a href="/ventas/{{ sale.id }}">{{ sale.number }}</a> · {{ sale.total|money }} · saldo {{ sale.balance|money }}</li>{% else %}<li class="text-cocoa-700">Sin compras.</li>{% endfor %}</ul>
   </section>
   <section>
-    <h2 class="font-display text-2xl">Separados</h2>
+    <h2>Separados</h2>
     <ul class="mt-2 text-sm">{% for layaway in layaways %}<li class="border-t border-cream-200 py-2"><a href="/separados/{{ layaway.id }}">{{ layaway.number }}</a> · abonado {{ layaway.paid|money }} · {{ layaway.status }}</li>{% else %}<li class="text-cocoa-700">Sin separados.</li>{% endfor %}</ul>
   </section>
 </div>

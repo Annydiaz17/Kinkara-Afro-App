@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Clientas{% endblock %}
 {% block content %}
-<h1 class="font-display text-4xl">Clientas</h1>
+<h1>Clientas</h1>
 <form class="mt-4" method="get"><input class="input max-w-md" name="q" value="{{ q }}" placeholder="Nombre, teléfono o documento"></form>
 <form method="post" action="/clientes" class="card mt-4 grid gap-2 p-4 md:grid-cols-2">
   <input type="hidden" name="_csrf" value="{{ csrf }}">

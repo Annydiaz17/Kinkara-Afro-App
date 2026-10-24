@@ -2,7 +2,7 @@
 {% block title %}Inventario{% endblock %}
 {% block content %}
 <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
-  <h1 class="font-display text-4xl">Inventario</h1>
+  <h1>Inventario</h1>
   {% if user.is_admin %}<a href="/inventario/carga" class="btn-ghost">Carga inicial</a>{% endif %}
 </div>
 <form class="mb-4 flex flex-wrap gap-2" method="get">
@@ -18,7 +18,7 @@
       {% for item in rows %}
       {% set variant = item.variant %}
       <tr class="border-t border-cream-200 align-top">
-        <td class="py-2"><a class="font-semibold" href="/productos/{{ variant.product_id }}">{{ variant.product.name }}</a><div class="text-xs text-cocoa-700">{{ variant.short }} · {{ variant.sku }}</div></td>
+        <td class="py-2"><a class="font-semibold" href="/productos/{{ variant.product_id }}">{{ variant.product.name }}</a><div class="text-sm text-cocoa-700">{{ variant.short }} · {{ variant.sku }}</div></td>
         <td>{% if variant.unit == 'unidad' %}{{ item.state.available }} u{% else %}{{ item.state.packages }} pq · {{ item.state.grams }} g{% endif %}{% if item.state.agotado %} <span class="badge-bad">Agotado</span>{% elif item.state.bajo %} <span class="badge-warn">Bajo</span>{% endif %}</td>
         <td>{{ item.state.reserved }}</td>
         <td>{% if variant.unit == 'unidad' %}{{ variant.unsellable_units }}{% else %}{{ variant.unsellable_packages }} pq · {{ variant.unsellable_grams }} g{% endif %}</td>

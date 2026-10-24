@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Reportes{% endblock %}
 {% block content %}
-<h1 class="font-display text-4xl">Reportes</h1>
+<h1>Reportes</h1>
 <form class="card mt-4 grid gap-2 p-4 md:grid-cols-3" method="get">
   <select class="input" name="tipo">{% for kind, label in kinds %}<option value="{{ kind }}" {% if tipo == kind %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
   <input class="input" type="date" name="desde" value="{{ desde }}">

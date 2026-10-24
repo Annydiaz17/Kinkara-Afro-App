@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Usuarios{% endblock %}
 {% block content %}
-<h1 class="font-display text-4xl">Usuarios</h1>
+<h1>Usuarios</h1>
 <p class="mt-2 text-sm text-cocoa-700">Caja no cambia costos, no borra movimientos y no ajusta inventario sin autorización.</p>
 <form method="post" action="/usuarios" class="card mt-4 grid gap-2 p-4 md:grid-cols-2">
   <input type="hidden" name="_csrf" value="{{ csrf }}">

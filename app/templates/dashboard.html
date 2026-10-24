@@ -26,7 +26,7 @@
       {% endif %}
       <div class="banner-copy">
         <p class="banner-kicker">Bienvenida a</p>
-        <h1 class="banner-title">Kinkara Afro</h1>
+        <h1 class="banner-title fuente-marca">Kinkara Afro</h1>
         <p class="banner-tag">Belleza · Raíces · Confianza</p>
       </div>
     </section>
@@ -38,7 +38,7 @@
           <span class="trend" aria-hidden="true">{{ icon('arrow', 14) }}</span>
         </span>
         <span class="stat-label">Ventas del día</span>
-        <span class="stat-value num">{{ delivered_total|money }}</span>
+        <span class="stat-value cifra">{{ delivered_total|money }}</span>
         <span class="stat-note">{{ delivered_count }} comprobante{% if delivered_count != 1 %}s{% endif %}</span>
       </a>
       <a class="stat stat-peach" href="/separados">
@@ -47,7 +47,7 @@
           <span class="trend" aria-hidden="true">{{ icon('arrow', 14) }}</span>
         </span>
         <span class="stat-label">Abonos de separados</span>
-        <span class="stat-value num">{{ layaway_today|money }}</span>
+        <span class="stat-value cifra">{{ layaway_today|money }}</span>
         <span class="stat-note">Anticipo. No es venta.</span>
       </a>
       <a class="stat stat-mint" href="/fiados">
@@ -56,7 +56,7 @@
           <span class="trend" aria-hidden="true">{{ icon('arrow', 14) }}</span>
         </span>
         <span class="stat-label">Abonos de fiados</span>
-        <span class="stat-value num">{{ credit_today|money }}</span>
+        <span class="stat-value cifra">{{ credit_today|money }}</span>
         <span class="stat-note">Cobro de una deuda.</span>
       </a>
       {% if user.is_admin %}
@@ -66,7 +66,7 @@
           <span class="trend" aria-hidden="true">{{ icon('arrow', 14) }}</span>
         </span>
         <span class="stat-label">Ganancia estimada de hoy</span>
-        <span class="stat-value num">{{ report.net|money }}</span>
+        <span class="stat-value cifra">{{ report.net|money }}</span>
         <span class="stat-note">Ventas {{ report.net_sales|money }} – costo {{ report.cogs|money }} – gastos {{ (report.expenses + report.payroll)|money }}</span>
       </a>
       {% endif %}
@@ -98,7 +98,7 @@
             <circle cx="{{ dot.x }}" cy="{{ dot.y }}" r="3.5" fill="#6E1B2E"/>
             {% endfor %}
             {% else %}
-            <text x="320" y="100" text-anchor="middle" fill="#7A6A66" font-family="Figtree, sans-serif" font-size="14">Aún no hay ventas hoy</text>
+            <text class="chart-empty" x="320" y="99" text-anchor="middle">Aún no hay ventas hoy</text>
             {% endif %}
             {% for label in chart.labels %}
             <text class="chart-label" x="{{ label.x }}" y="200" text-anchor="{% if loop.first %}start{% elif loop.last %}end{% else %}middle{% endif %}">{{ label.text }}</text>
@@ -110,7 +110,7 @@
             <span class="well well-rose">{{ icon('bag', 18) }}</span>
             <span class="chart-copy">
               <span class="chart-name">Total ventas</span>
-              <span class="chart-amount num">{{ delivered_total|money }}</span>
+              <span class="chart-amount cifra">{{ delivered_total|money }}</span>
             </span>
           </li>
           {% if user.is_admin %}
@@ -118,21 +118,21 @@
             <span class="well well-rose">{{ icon('coins', 18) }}</span>
             <span class="chart-copy">
               <span class="chart-name">Total de costos</span>
-              <span class="chart-amount num">{{ report.cogs|money }}</span>
+              <span class="chart-amount cifra">{{ report.cogs|money }}</span>
             </span>
           </li>
           <li>
             <span class="well well-rose">{{ icon('chart', 18) }}</span>
             <span class="chart-copy">
               <span class="chart-name">Utilidad bruta estimada</span>
-              <span class="chart-amount num">{{ report.gross|money }}</span>
+              <span class="chart-amount cifra">{{ report.gross|money }}</span>
             </span>
           </li>
           <li>
             <span class="well well-rose">{{ icon('receipt', 18) }}</span>
             <span class="chart-copy">
               <span class="chart-name">Gastos del día</span>
-              <span class="chart-amount num">{{ (report.expenses + report.payroll)|money }}</span>
+              <span class="chart-amount cifra">{{ (report.expenses + report.payroll)|money }}</span>
             </span>
           </li>
           {% endif %}
@@ -178,22 +178,22 @@
         <div class="mini mini-rose">
           <span class="well">{{ icon('alert', 18) }}</span>
           <span class="mini-label">Productos agotados</span>
-          <span class="mini-value num is-alert">{{ agotados }}</span>
+          <span class="mini-value cifra is-alert">{{ agotados }}</span>
         </div>
         <div class="mini mini-peach">
           <span class="well">{{ icon('down', 18) }}</span>
           <span class="mini-label">Stock bajo</span>
-          <span class="mini-value num">{{ bajos }}</span>
+          <span class="mini-value cifra">{{ bajos }}</span>
         </div>
         <div class="mini mini-lavender">
           <span class="well">{{ icon('layers', 18) }}</span>
           <span class="mini-label">Total de referencias</span>
-          <span class="mini-value num">{{ referencias }}</span>
+          <span class="mini-value cifra">{{ referencias }}</span>
         </div>
         <div class="mini mini-mint">
           <span class="well">{{ icon('coins', 18) }}</span>
           <span class="mini-label">Inventario valorizado al costo</span>
-          <span class="mini-value num">{{ inventario_valor|money }}</span>
+          <span class="mini-value cifra">{{ inventario_valor|money }}</span>
         </div>
       </div>
     </section>
@@ -208,7 +208,7 @@
         <a class="money-hero {% if account.code == 'ahorro' %}is-ahorro{% else %}is-caja{% endif %}" href="/cuentas/{{ account.id }}">
           <span class="bubble">{% if account.code == 'ahorro' %}{{ icon('piggy', 18) }}{% else %}{{ icon('wallet', 18) }}{% endif %}</span>
           <span class="money-name">{{ account.name }}</span>
-          <span class="money-value num">{{ account.balance|money }}</span>
+          <span class="money-value cifra">{{ account.balance|money }}</span>
           {% if account.code == 'ahorro' %}
           <span class="money-note">Anticipos de separados sin entregar: {{ committed|money }}. Ese dinero está en las cuentas, pero sigue siendo de las clientas.</span>
           {% endif %}
@@ -219,7 +219,7 @@
           <span class="bubble bubble-{{ account.kind }}">{% if account.kind == 'billetera' %}{{ icon('phone', 16) }}{% elif account.kind == 'banco' %}{{ icon('building', 16) }}{% elif account.kind == 'datafono' %}{{ icon('card', 16) }}{% else %}{{ icon('wallet', 16) }}{% endif %}</span>
           <span>
             <span class="money-name">{{ account.name }}</span>
-            <span class="money-value num">{{ account.balance|money }}</span>
+            <span class="money-value cifra">{{ account.balance|money }}</span>
           </span>
         </a>
         {% endfor %}

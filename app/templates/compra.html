@@ -2,7 +2,7 @@
 {% block title %}{{ purchase.number }}{% endblock %}
 {% block content %}
 <a href="/compras" class="text-sm font-semibold text-gold-700">Compras</a>
-<h1 class="font-display text-4xl">{{ purchase.number }}</h1>
+<h1>{{ purchase.number }}</h1>
 <p class="text-sm">{{ purchase.supplier.name }} · {{ purchase.ordered_at|fecha }} · {{ purchase.status }}</p>
 <dl class="mt-3 max-w-md text-sm">
   <div class="flex justify-between"><dt>Mercancía</dt><dd class="num">{{ purchase.merchandise|money }}</dd></div>

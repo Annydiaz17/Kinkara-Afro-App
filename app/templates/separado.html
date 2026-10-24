@@ -2,7 +2,7 @@
 {% block title %}{{ layaway.number }}{% endblock %}
 {% block content %}
 <a href="/separados" class="text-sm font-semibold text-gold-700">Separados</a>
-<h1 class="font-display text-4xl">{{ layaway.number }}</h1>
+<h1>{{ layaway.number }}</h1>
 <p class="text-sm"><a href="/clientes/{{ layaway.customer_id }}">{{ layaway.customer.name }}</a> · {{ layaway.variant.label }}</p>
 <div class="mt-3 flex flex-wrap gap-2">
   <span class="{% if state == 'vencido' %}badge-bad{% elif state == 'por_vencer' %}badge-warn{% elif state == 'activo' %}badge-ok{% else %}badge-mute{% endif %}">{{ state }}</span>
@@ -10,8 +10,8 @@
   <span class="badge-mute">Vence {{ layaway.due_at|fecha }}</span>
 </div>
 <dl class="mt-4 grid max-w-lg grid-cols-2 gap-2 text-sm">
-  <div class="card p-3"><dt class="text-cocoa-700">Acordado</dt><dd class="num font-display text-2xl">{{ layaway.agreed_price|money }}</dd></div>
-  <div class="card p-3"><dt class="text-cocoa-700">Saldo</dt><dd class="num font-display text-2xl">{{ layaway.balance|money }}</dd></div>
+  <div class="card p-3"><dt class="text-[17px] font-semibold text-cocoa-800">Acordado</dt><dd class="cifra text-3xl">{{ layaway.agreed_price|money }}</dd></div>
+  <div class="card p-3"><dt class="text-[17px] font-semibold text-cocoa-800">Saldo</dt><dd class="cifra text-3xl">{{ layaway.balance|money }}</dd></div>
 </dl>
 <p class="mt-2 text-sm text-cocoa-700">Abonado {{ layaway.paid|money }}. Retención pactada si desiste: {{ layaway.retention_percent }}%.</p>
 {% if layaway.delivered_sale_id %}<p class="mt-2"><a class="font-semibold text-gold-700" href="/ventas/{{ layaway.delivered_sale_id }}">Ver la venta de la entrega</a></p>{% endif %}
@@ -31,7 +31,7 @@
 {% if user.is_admin %}
 <form method="post" action="/separados/{{ layaway.id }}/prorrogar" class="card mt-4 grid gap-2 p-4 md:grid-cols-2">
   <input type="hidden" name="_csrf" value="{{ csrf }}">
-  <h2 class="md:col-span-2 font-display text-2xl">Prorrogar</h2>
+  <h2 class="md:col-span-2">Prorrogar</h2>
   <input class="input" type="date" name="new_due" required>
   <input class="input" name="reason" placeholder="Por qué" required>
   <input class="input" name="admin_password" type="password" placeholder="Clave admin" required>
@@ -39,7 +39,7 @@
 </form>
 <form method="post" action="/separados/{{ layaway.id }}/cancelar" class="card mt-4 grid gap-2 p-4 md:grid-cols-2">
   <input type="hidden" name="_csrf" value="{{ csrf }}">
-  <h2 class="md:col-span-2 font-display text-2xl">Cancelar</h2>
+  <h2 class="md:col-span-2">Cancelar</h2>
   <p class="md:col-span-2 text-sm text-cocoa-700">Se devuelve lo abonado menos el {{ layaway.retention_percent }}%. La parte retenida queda como otro ingreso, no como venta. La unidad vuelve a estar disponible.</p>
   <select class="input" name="refund_account">{% for account in accounts %}<option value="{{ account.code }}">Devolver desde {{ account.name }}</option>{% endfor %}</select>
   <input class="input" name="reason" placeholder="Motivo" required>
@@ -51,7 +51,7 @@
 {% if layaway.status == 'cancelado' %}
 <p class="mt-4 text-sm">Retenido {{ layaway.retention_amount|money }}. Devuelto {{ layaway.refund_amount|money }}. {{ layaway.cancel_reason }}</p>
 {% endif %}
-<h2 class="mt-6 font-display text-2xl">Abonos</h2>
+<h2 class="mt-6">Abonos</h2>
 <ul class="mt-2 text-sm">
   {% for pay in payments %}
   <li class="flex items-center justify-between border-t border-cream-200 py-2">

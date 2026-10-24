@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Ajustes{% endblock %}
 {% block content %}
-<h1 class="font-display text-4xl">Ajustes</h1>
+<h1>Ajustes</h1>
 <form method="post" action="/ajustes" class="card mt-4 grid max-w-2xl gap-3 p-4">
   <input type="hidden" name="_csrf" value="{{ csrf }}">
   <div><label class="label">Nombre del negocio</label><input class="input" name="business_name" value="{{ values.business_name }}"></div>
@@ -29,7 +29,7 @@
 </form>
 <form method="post" action="/cuenta/clave" class="card mt-4 max-w-md space-y-2 p-4">
   <input type="hidden" name="_csrf" value="{{ csrf }}">
-  <h2 class="font-display text-2xl">Tu contraseña</h2>
+  <h2>Tu contraseña</h2>
   <input class="input" type="password" name="current" placeholder="Clave actual" required>
   <input class="input" type="password" name="new" placeholder="Clave nueva" required>
   <button class="btn-ghost">Cambiar</button>

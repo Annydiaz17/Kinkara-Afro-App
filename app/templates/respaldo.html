@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Respaldo{% endblock %}
 {% block content %}
-<h1 class="font-display text-4xl">Respaldo</h1>
+<h1>Respaldo</h1>
 <p class="mt-2 max-w-2xl text-sm text-cocoa-700">Cada día se guarda una copia en este equipo y se conservan 30. Descárgala para tenerla fuera del servidor: otro computador o Drive. En producción, <span class="font-semibold">scripts/backup.sh</span> puede enviarla con rclone si defines RCLONE_REMOTE.</p>
 {% if latest %}<p class="mt-2 text-sm">Última copia: {{ latest }}</p>{% else %}<p class="mt-2 text-sm">Todavía no hay una copia en esta carpeta.</p>{% endif %}
 <form method="post" action="/respaldo" class="mt-4"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn-primary">Crear copia ahora</button></form>
@@ -12,7 +12,7 @@
 </ul>
 <form method="post" action="/respaldo/restaurar" class="card mt-6 max-w-lg space-y-2 p-4">
   <input type="hidden" name="_csrf" value="{{ csrf }}">
-  <h2 class="font-display text-2xl">Restaurar</h2>
+  <h2>Restaurar</h2>
   <p class="text-sm text-cocoa-700">Reemplaza los datos actuales por una copia. Antes se guarda otra copia de seguridad. Escribe RESTAURAR.</p>
   <select class="input" name="archivo">{% for item in backups %}<option value="{{ item.name }}">{{ item.name }}</option>{% endfor %}</select>
   <input class="input" name="phrase" placeholder="RESTAURAR">

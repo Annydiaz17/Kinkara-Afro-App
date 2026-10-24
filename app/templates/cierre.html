@@ -9,7 +9,7 @@
 <article class="sheet card mx-auto max-w-xl p-6">
   <header class="border-b border-cocoa-900 pb-3 text-center">
     <img class="sheet-logo" src="/static/img/kinkara-logo-flor-tinta.svg" alt="Kinkara Afro" width="200">
-    <h1 class="mt-3 text-xl">Cierre de caja</h1>
+    <h1 class="mt-3">Cierre de caja</h1>
     <p class="mt-2 text-sm">{{ session.number }} · {{ (session.closed_at or session.opened_at)|dt }}</p>
     <p class="text-sm">Abrió {{ session.opened_by.full_name }}{% if session.closed_by %} · cerró {{ session.closed_by.full_name }}{% endif %}</p>
   </header>
@@ -70,7 +70,7 @@
 {% if user.is_admin and session.status == 'cerrada' and can_correct %}
 <form method="post" action="/caja/{{ session.id }}/corregir" class="no-print mx-auto mt-6 max-w-xl space-y-3 card p-4">
   <input type="hidden" name="_csrf" value="{{ csrf }}">
-  <h2 class="font-display text-2xl">Corregir este cierre</h2>
+  <h2>Corregir este cierre</h2>
   <p class="text-sm text-cocoa-700">Solo el último cierre, y solo antes de abrir la caja otra vez.</p>
   <input class="input" name="counted" value="{{ session.counted_close }}" required>
   <select class="input" name="transfer_account_id">{% for account in accounts if account.code != 'caja' %}<option value="{{ account.id }}" {% if session.transfer_account_id == account.id %}selected{% endif %}>{{ account.name }}</option>{% endfor %}</select>

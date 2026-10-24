@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Revisar carga{% endblock %}
 {% block content %}
-<h1 class="font-display text-4xl">Revisar antes de cargar</h1>
+<h1>Revisar antes de cargar</h1>
 <p class="mt-2 text-sm">{{ rows|length }} filas. {% if errors %}Hay errores: no se puede confirmar.{% else %}Todo está listo para crear los movimientos de apertura.{% endif %}</p>
 {% if duplicate %}<p class="mt-2 rounded-xl bg-gold-200 px-3 py-2 text-sm">Esta plantilla ya se cargó. Para aplicarla otra vez escribe CARGAR DE NUEVO.</p>{% endif %}
 <div class="mt-4 overflow-x-auto">

@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Cuentas{% endblock %}
 {% block content %}
-<h1 class="font-display text-4xl">Cuentas</h1>
+<h1>Cuentas</h1>
 <p class="mt-2 max-w-2xl text-sm text-cocoa-700">El dinero total del negocio no cambia cuando pasas plata de una cuenta a otra. Un traslado no es venta ni gasto.</p>
 <p class="mt-2 text-sm">Total en cuentas: <span class="num font-semibold">{{ total|money }}</span>. Anticipos de separados sin entregar: <span class="num font-semibold">{{ committed|money }}</span>.</p>
 <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
   {% for account in accounts %}
   <a href="/cuentas/{{ account.id }}" class="card p-4">
-    <div class="text-sm text-cocoa-700">{{ account.name }}</div>
-    <div class="num font-display text-3xl">{{ account.balance|money }}</div>
+    <div class="text-[17px] font-semibold text-cocoa-800">{{ account.name }}</div>
+    <div class="cifra text-3xl">{{ account.balance|money }}</div>
     {% if account.code == 'ahorro' %}
-    <div class="mt-2 text-xs">Total {{ account.balance|money }}. Comprometido en separados no entregados {{ committed|money }}.</div>
+    <div class="mt-2 text-sm text-cocoa-700">Total {{ account.balance|money }}. Comprometido en separados no entregados {{ committed|money }}.</div>
     {% endif %}
   </a>
   {% endfor %}
@@ -19,7 +19,7 @@
 <div class="mt-6 grid gap-4 lg:grid-cols-2">
   <form method="post" action="/cuentas/trasladar" class="card space-y-2 p-4">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
-    <h2 class="font-display text-2xl">Trasladar</h2>
+    <h2>Trasladar</h2>
     <select class="input" name="source_id">{% for account in accounts %}<option value="{{ account.id }}">{{ account.name }}</option>{% endfor %}</select>
     <select class="input" name="target_id">{% for account in accounts %}<option value="{{ account.id }}" {% if account.code == 'ahorro' %}selected{% endif %}>{{ account.name }}</option>{% endfor %}</select>
     <input class="input" name="amount" placeholder="Valor" required>
@@ -28,7 +28,7 @@
   </form>
   <form method="post" action="/cuentas/movimiento" class="card space-y-2 p-4">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
-    <h2 class="font-display text-2xl">Dueño</h2>
+    <h2>Dueño</h2>
     <select class="input" name="account_id">{% for account in accounts %}<option value="{{ account.id }}">{{ account.name }}</option>{% endfor %}</select>
     <select class="input" name="kind"><option value="retiro">Retiro del dueño</option><option value="aporte">Aporte de capital</option><option value="prestamo_entra">Préstamo recibido</option><option value="prestamo_sale">Pago de préstamo</option></select>
     <input class="input" name="amount" placeholder="Valor" required>

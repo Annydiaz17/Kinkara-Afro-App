@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Nuevo producto{% endblock %}
 {% block content %}
-<h1 class="font-display text-4xl">Nuevo producto</h1>
+<h1>Nuevo producto</h1>
 <form method="post" action="/productos" class="mt-4 grid gap-3 md:grid-cols-2" x-data="{ unit: 'unidad' }">
   <input type="hidden" name="_csrf" value="{{ csrf }}">
   <div><label class="label">Código</label><input class="input" name="code" required></div>
@@ -12,7 +12,7 @@
   <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="returnable" value="1"> Admite devolución</label>
   <div><label class="label">Retención si cancelan un separado (%)</label><input class="input" name="retention_percent" value="20"></div>
   <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="quick_sale" value="1"> Acceso rápido en la venta</label>
-  <h2 class="md:col-span-2 mt-2 font-display text-2xl">Primera variante</h2>
+  <h2 class="md:col-span-2 mt-2">Primera variante</h2>
   <div><label class="label">SKU</label><input class="input" name="sku" required></div>
   <div><label class="label">Unidad de inventario</label>
     <select class="input" name="unit" x-model="unit"><option value="unidad">Unidad</option><option value="gramo">Gramo (con paquete)</option></select>

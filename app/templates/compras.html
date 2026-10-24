@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Compras{% endblock %}
 {% block content %}
-<h1 class="font-display text-4xl">Compras</h1>
+<h1>Compras</h1>
 <p class="mt-2 max-w-2xl text-sm text-cocoa-700">El flete se reparte entre los productos según su valor y entra al costo. Una peluca de $100.000 con $10.000 de envío queda en $110.000.</p>
 <p class="mt-2 text-sm">Por pagar: <span class="num font-semibold">{{ payable|money }}</span></p>
 <form method="post" action="/proveedores" class="card mt-4 flex flex-wrap gap-2 p-4">
@@ -12,7 +12,7 @@
 </form>
 <form method="post" action="/compras" class="card mt-4 space-y-3 p-4" x-data="{ rows: [0, 1] }">
   <input type="hidden" name="_csrf" value="{{ csrf }}">
-  <h2 class="font-display text-2xl">Nuevo pedido</h2>
+  <h2>Nuevo pedido</h2>
   <div class="grid gap-2 md:grid-cols-3">
     <select class="input" name="supplier_id" required><option value="">Proveedor</option>{% for supplier in suppliers %}<option value="{{ supplier.id }}">{{ supplier.name }}</option>{% endfor %}</select>
     <input class="input" type="date" name="ordered_at" value="{{ today }}" required>

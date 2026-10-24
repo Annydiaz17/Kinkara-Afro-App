@@ -2,8 +2,8 @@
 {% block title %}{{ account.name }}{% endblock %}
 {% block content %}
 <a href="/cuentas" class="text-sm font-semibold text-gold-700">Cuentas</a>
-<h1 class="font-display text-4xl">{{ account.name }}</h1>
-<p class="num mt-1 font-display text-3xl">{{ account.balance|money }}</p>
+<h1>{{ account.name }}</h1>
+<p class="cifra text-3xl mt-1">{{ account.balance|money }}</p>
 {% if account.code == 'ahorro' %}
 <p class="mt-2 max-w-xl text-sm text-cocoa-700">Total en ahorro {{ account.balance|money }}. Anticipos de separados todavía no entregados, en todo el negocio: {{ committed|money }}. No es plata libre de las clientas.</p>
 {% endif %}
